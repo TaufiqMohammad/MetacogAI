@@ -1,12 +1,19 @@
 "use client";
 
+import { useState, useEffect, useRef } from "react";
 import { Question } from "@/types/quiz";
-import { AlertTriangle, Lightbulb } from "lucide-react";
+import { Lock, Unlock, Send, Radio } from "lucide-react";
+import { audioSynth } from "@/utils/audio";
+
+interface SocraticMessage {
+  role: "user" | "assistant" | "system";
+  content: string;
+}
 
 interface SocraticInterventionProps {
   question: Question;
   selectedAnswerIndex: number;
-  onClose: () => void;
+  onClose: (solved: boolean) => void;
 }
 
 export default function SocraticIntervention({
@@ -14,59 +21,140 @@ export default function SocraticIntervention({
   selectedAnswerIndex,
   onClose,
 }: SocraticInterventionProps) {
+  const [messages, setMessages] = useState<SocraticMessage[]>([]);
+  const [input, setInput] = useState("");
+  const [isTyping, setIsTyping] = useState(false);
+  const [isSolved, setIsSolved] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  
   const selectedOptionText = question.options[selectedAnswerIndex];
 
+  // Auto-scroll
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, isTyping]);
+
+  const handleSend = async () => {
+    if (!input.trim() || isSolved || isTyping) return;
+    
+    audioSynth.playTick();
+    const userMsg: SocraticMessage = { role: "user", content: input };
+    setMessages((prev) => [...prev, userMsg]);
+    setInput("");
+    setIsTyping(true);
+
+    try {
+      const response = await fetch("http://localhost:8000/api/quiz/socratic/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          question_text: question.questionText,
+          options: question.options,
+          correct_index: question.correctAnswerIndex,
+          user_answer_index: selectedAnswerIndex,
+          chat_history: messages,
+          new_message: userMsg.content
+        }),
+      });
+
+      if (!response.ok) throw new Error("Failed to chat");
+      const data = await response.json();
+      
+      setMessages((prev) => [...prev, { role: "assistant", content: data.response_text }]);
+      
+      if (data.is_solved) {
+        setIsSolved(true);
+        audioSynth.playSuccess();
+      } else {
+        audioSynth.playBuzzer();
+      }
+    } catch (error) {
+      console.error(error);
+      setMessages((prev) => [...prev, { role: "system", content: "ERR: CONNECTION TO COMMAND LOST." }]);
+    } finally {
+      setIsTyping(false);
+    }
+  };
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/60 p-4 backdrop-blur-sm transition-opacity dark:bg-black/60">
-      <div className="w-full max-w-lg overflow-hidden rounded-2xl bg-white shadow-2xl dark:bg-gray-900 animate-in fade-in zoom-in-95 duration-200">
-        
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4">
+      <div className="flex h-full max-h-[600px] w-full max-w-2xl flex-col border-4 border-[var(--retro-red)] bg-black font-mono shadow-[0_0_20px_rgba(213,0,0,0.5)]">
         {/* Header */}
-        <div className="border-b border-orange-200 bg-orange-50 px-6 py-4 dark:border-orange-900/50 dark:bg-orange-950/30">
-          <div className="flex items-center gap-3">
-            <div className="rounded-full bg-orange-200 p-2 text-orange-700 dark:bg-orange-900 dark:text-orange-300">
-              <AlertTriangle className="h-6 w-6" />
-            </div>
-            <div>
-              <h2 className="text-xl font-bold text-orange-900 dark:text-orange-200">
-                Misconception Detected
-              </h2>
-              <p className="text-sm font-medium text-orange-700 dark:text-orange-400">
-                You were certain, but incorrect. Let's unpack this.
-              </p>
-            </div>
+        <div className="flex items-center gap-3 border-b-4 border-[var(--retro-red)] bg-[var(--retro-red)] px-4 py-3 text-white">
+          <Radio className="h-6 w-6 animate-pulse" />
+          <div>
+            <h2 className="text-lg font-bold">INCOMING TRANSMISSION: DANGER ZONE</h2>
+            <p className="text-xs">DEBUG PROTOCOL - OVERRIDE REQUIRED</p>
           </div>
         </div>
 
-        {/* Content */}
-        <div className="px-6 py-6">
-          <div className="mb-6">
-            <p className="mb-1 text-sm font-semibold text-gray-500 dark:text-gray-400">
-              The Option You Chose:
-            </p>
-            <div className="rounded-lg border border-red-100 bg-red-50 p-3 text-red-800 dark:border-red-900/30 dark:bg-red-950/20 dark:text-red-300">
-              "{selectedOptionText}"
-            </div>
-          </div>
+        {/* Console Context */}
+        <div className="border-b-4 border-[var(--retro-gray)] bg-[#222] px-4 py-3 text-sm text-gray-300">
+          <p className="font-bold text-white mb-2">TARGET: {question.topic.toUpperCase()}</p>
+          <p>You selected: "{selectedOptionText}" with MAXIMUM CONFIDENCE.</p>
+          <p className="mt-2 text-[var(--retro-red)] font-bold animate-pulse">LOCKED OUT. AWAITING LOGIC DEBUG...</p>
+        </div>
 
-          <div className="mb-8">
-            <div className="mb-3 flex items-center gap-2">
-              <Lightbulb className="h-5 w-5 text-amber-500" />
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                Socratic Hint
-              </h3>
-            </div>
-            <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
-              {question.socraticHint}
-            </p>
+        {/* Chat History */}
+        <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-black text-white">
+          <div className="text-[var(--retro-yellow)]">
+            <span className="font-bold">HQ&gt;</span> I noticed you were completely certain about that answer, but it's incorrect. Let's break down your logic. Why did you choose that option?
           </div>
+          
+          {messages.map((msg, idx) => (
+            <div key={idx} className={msg.role === "user" ? "text-white" : msg.role === "assistant" ? "text-[var(--retro-yellow)]" : "text-[var(--retro-red)]"}>
+              <span className="font-bold">{msg.role === "user" ? "YOU" : "HQ"}&gt;</span> {msg.content}
+            </div>
+          ))}
+          
+          {isTyping && (
+            <div className="text-[var(--retro-yellow)] animate-pulse">
+              <span className="font-bold">HQ&gt;</span> receiving...
+            </div>
+          )}
+          <div ref={messagesEndRef} />
+        </div>
 
-          {/* Action */}
-          <button
-            onClick={onClose}
-            className="w-full rounded-xl bg-orange-600 px-6 py-4 text-base font-bold text-white shadow-md transition hover:bg-orange-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-600 dark:hover:bg-orange-500"
-          >
-            I See My Flaw Now, Continue
-          </button>
+        {/* Action / Input */}
+        <div className="border-t-4 border-[var(--retro-red)] p-4 bg-[#222]">
+          {isSolved ? (
+            <button
+              onClick={() => {
+                audioSynth.playHeal();
+                onClose(true);
+              }}
+              className="retro-btn w-full flex items-center justify-center gap-2 px-4 py-3 text-xl bg-[var(--retro-blue)] text-white hover:text-black"
+            >
+              <Unlock className="h-5 w-5" />
+              OVERRIDE SUCCESSFUL. RESUME COMBAT.
+            </button>
+          ) : (
+            <div className="flex items-center gap-2">
+              <span className="text-white font-bold">YOU&gt;</span>
+              <input
+                type="text"
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleSend()}
+                className="flex-1 bg-black text-white border-2 border-[var(--retro-gray)] p-2 outline-none focus:border-white"
+                placeholder="Type your explanation..."
+                autoFocus
+              />
+              <button
+                onClick={handleSend}
+                disabled={!input.trim() || isTyping}
+                className="retro-btn px-4 py-2 disabled:opacity-50"
+              >
+                <Send className="h-5 w-5" />
+              </button>
+              <button 
+                onClick={() => onClose(false)}
+                className="ml-2 text-xs border-2 border-[var(--retro-red)] bg-[var(--retro-red)] text-white px-2 py-2 hover:bg-white hover:text-[var(--retro-red)] font-bold"
+              >
+                ABORT (Lose Shield)
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>

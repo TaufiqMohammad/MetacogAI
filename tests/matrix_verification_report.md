@@ -1,6 +1,6 @@
 # Metacog AI — Confidence Matrix Verification Report
 
-**Server:** `http://127.0.0.1:8001`  
+**Server:** `http://127.0.0.1:8000`  
 **Endpoint:** `POST /api/quiz/evaluate`  
 **Total tests:** 10
 
@@ -10,16 +10,16 @@
 
 | # | Test Label | Expected State | Returned State | HTTP | State ✓ | DZ Safe | Latency (ms) | Remediation Preview |
 |---|-----------|---------------|---------------|------|---------|---------|-------------|---------------------|
-| 1 | T-01 · Mastery | Mastery | Mastery | 200 | ✅ | — | 390 | Excellent work! Your confidence matches your flawless mastery of this concept. |
-| 2 | T-02 · Mastery | Mastery | Mastery | 200 | ✅ | — | 247 | Excellent work! Your confidence matches your flawless mastery of this concept. |
-| 3 | T-03 · Lucky Guess | Lucky Guess | Lucky Guess | 200 | ✅ | — | 399 | You selected the correct option! However, since your confidence was lower, take … |
-| 4 | T-04 · Lucky Guess | Lucky Guess | Lucky Guess | 200 | ✅ | — | 399 | Hold on — let's think this through together. Just because you guessed it, doesn'… |
-| 5 | T-05 · Lucky Guess | Lucky Guess | Lucky Guess | 200 | ✅ | — | 312 | You selected the correct option! However, since your confidence was lower, take … |
-| 6 | T-06 · Danger Zone | Danger Zone | Danger Zone | 200 | ✅ | ✅ | 622 | Hold on — let's think this through together. If binary search has a time complex… |
-| 7 | T-07 · Danger Zone | Danger Zone | Danger Zone | 200 | ✅ | ✅ | 719 | Hold on — let's think this through together. You're certain, but are you applyin… |
-| 8 | T-08 · Danger Zone | Danger Zone | Danger Zone | 200 | ✅ | ✅ | 618 | Hold on — let's think this through together. If plants make oxygen during photos… |
-| 9 | T-09 · Foundational Gap | Foundational Gap | Foundational Gap | 200 | ✅ | — | 715 | Hold on — let's think this through together. You're leaning towards the nucleus,… |
-| 10 | T-10 · Foundational Gap | Foundational Gap | Foundational Gap | 200 | ✅ | — | 717 | Hold on — let's think this through together. When we talk about LIFO order, we'r… |
+| 1 | T-01 · Mastery | Mastery | Mastery | 200 | ✅ | — | 1516 | Excellent work! Your confidence matches your flawless mastery of this concept. |
+| 2 | T-02 · Mastery | Mastery | Mastery | 200 | ✅ | — | 526 | Excellent work! Your confidence matches your flawless mastery of this concept. |
+| 3 | T-03 · Lucky Guess | Lucky Guess | Lucky Guess | 200 | ✅ | — | 271 | You selected the correct option! However, since your confidence was lower, take … |
+| 4 | T-04 · Lucky Guess | Lucky Guess | Lucky Guess | 200 | ✅ | — | 534 | Hold on — let's think this through together. What makes you think Mercury is the… |
+| 5 | T-05 · Lucky Guess | Lucky Guess | Lucky Guess | 200 | ✅ | — | 476 | You're on the right track, but let's break it down - binary search works by repe… |
+| 6 | T-06 · Danger Zone | Danger Zone | Danger Zone | 200 | ✅ | ✅ | 439 | Hold on — let's think this through together. Binary search is an efficient algor… |
+| 7 | T-07 · Danger Zone | Danger Zone | Danger Zone | 200 | ✅ | ✅ | 610 | Hold on — let's think this through together. You seem pretty sure about your ans… |
+| 8 | T-08 · Danger Zone | Danger Zone | Danger Zone | 200 | ✅ | ✅ | 490 | Hold on — let's think this through together. If plants produce oxygen during pho… |
+| 9 | T-09 · Foundational Gap | Foundational Gap | Foundational Gap | 200 | ✅ | — | 301 | Hold on — let's think this through together. What's the primary function of the … |
+| 10 | T-10 · Foundational Gap | Foundational Gap | Foundational Gap | 200 | ✅ | — | 409 | Hold on — let's think this through together. When you add and remove items from … |
 
 ---
 
@@ -51,7 +51,7 @@ All Danger Zone cases are audited to confirm the **correct answer string does NO
     "is_correct": true,
     "state_match": true,
     "danger_zone_safe": null,
-    "latency_ms": 389.8,
+    "latency_ms": 1516.0,
     "remediation": "Excellent work! Your confidence matches your flawless mastery of this concept.",
     "error": null
   },
@@ -63,7 +63,7 @@ All Danger Zone cases are audited to confirm the **correct answer string does NO
     "is_correct": true,
     "state_match": true,
     "danger_zone_safe": null,
-    "latency_ms": 246.8,
+    "latency_ms": 525.7,
     "remediation": "Excellent work! Your confidence matches your flawless mastery of this concept.",
     "error": null
   },
@@ -75,7 +75,7 @@ All Danger Zone cases are audited to confirm the **correct answer string does NO
     "is_correct": true,
     "state_match": true,
     "danger_zone_safe": null,
-    "latency_ms": 399.3,
+    "latency_ms": 271.3,
     "remediation": "You selected the correct option! However, since your confidence was lower, take a moment to review why this choice works to solidify it for next time.",
     "error": null
   },
@@ -87,8 +87,8 @@ All Danger Zone cases are audited to confirm the **correct answer string does NO
     "is_correct": true,
     "state_match": true,
     "danger_zone_safe": null,
-    "latency_ms": 398.6,
-    "remediation": "Hold on \u2014 let's think this through together. Just because you guessed it, doesn't mean you understand why Mercury is the closest planet to the Sun. What do you think are some reasons why Mercury is closer to the Sun compared to other planets like Earth or Mars?",
+    "latency_ms": 534.5,
+    "remediation": "Hold on \u2014 let's think this through together. What makes you think Mercury is the closest planet to the Sun, and how can you be more certain about your answer next time?",
     "error": null
   },
   {
@@ -99,8 +99,8 @@ All Danger Zone cases are audited to confirm the **correct answer string does NO
     "is_correct": true,
     "state_match": true,
     "danger_zone_safe": null,
-    "latency_ms": 312.4,
-    "remediation": "You selected the correct option! However, since your confidence was lower, take a moment to review why this choice works to solidify it for next time.",
+    "latency_ms": 476.4,
+    "remediation": "You're on the right track, but let's break it down - binary search works by repeatedly dividing the search interval in half. Does that sound like a process that could be related to logarithms, and how might that impact the time complexity?",
     "error": null
   },
   {
@@ -111,8 +111,8 @@ All Danger Zone cases are audited to confirm the **correct answer string does NO
     "is_correct": false,
     "state_match": true,
     "danger_zone_safe": true,
-    "latency_ms": 621.8,
-    "remediation": "Hold on \u2014 let's think this through together. If binary search has a time complexity of O(1), that would mean it takes the same amount of time regardless of the size of the input. But doesn't binary search involve repeatedly dividing the search space in half until the target is found? How might the number of steps change as the input size grows?",
+    "latency_ms": 438.6,
+    "remediation": "Hold on \u2014 let's think this through together. Binary search is an efficient algorithm, but saying it's O(1) implies that it takes the same amount of time regardless of the size of the list. Do you think that's realistic, considering how binary search works by repeatedly dividing the list in half?",
     "error": null
   },
   {
@@ -123,8 +123,8 @@ All Danger Zone cases are audited to confirm the **correct answer string does NO
     "is_correct": false,
     "state_match": true,
     "danger_zone_safe": true,
-    "latency_ms": 719.0,
-    "remediation": "Hold on \u2014 let's think this through together. You're certain, but are you applying a principle that's more about modularizing systems into distinct sections to SOLID, which focuses on object-oriented design?",
+    "latency_ms": 609.5,
+    "remediation": "Hold on \u2014 let's think this through together. You seem pretty sure about your answer, but let's revisit the SOLID principles. What if the 'S' in SOLID is more about a fundamental idea of how to structure classes and modules to make them more maintainable, rather than a concept that sounds similar but is a bit broader?",
     "error": null
   },
   {
@@ -135,8 +135,8 @@ All Danger Zone cases are audited to confirm the **correct answer string does NO
     "is_correct": false,
     "state_match": true,
     "danger_zone_safe": true,
-    "latency_ms": 617.7,
-    "remediation": "Hold on \u2014 let's think this through together. If plants make oxygen during photosynthesis, would they really need to take it in?",
+    "latency_ms": 490.1,
+    "remediation": "Hold on \u2014 let's think this through together. If plants produce oxygen during photosynthesis, which gas would they likely need to absorb from their surroundings to start the process?",
     "error": null
   },
   {
@@ -147,8 +147,8 @@ All Danger Zone cases are audited to confirm the **correct answer string does NO
     "is_correct": false,
     "state_match": true,
     "danger_zone_safe": null,
-    "latency_ms": 714.8,
-    "remediation": "Hold on \u2014 let's think this through together. You're leaning towards the nucleus, but what's the main function of the nucleus, and how does it compare to the cell's energy needs?",
+    "latency_ms": 301.3,
+    "remediation": "Hold on \u2014 let's think this through together. What's the primary function of the cell part you chose? Does it generate most of the cell's energy?",
     "error": null
   },
   {
@@ -159,8 +159,8 @@ All Danger Zone cases are audited to confirm the **correct answer string does NO
     "is_correct": false,
     "state_match": true,
     "danger_zone_safe": null,
-    "latency_ms": 716.7,
-    "remediation": "Hold on \u2014 let's think this through together. When we talk about LIFO order, we're looking at how the last item that's added is the first one to be removed. Does that sound like something a Queue would do, or is there another data structure that behaves like that?",
+    "latency_ms": 409.0,
+    "remediation": "Hold on \u2014 let's think this through together. When you add and remove items from a data structure in a LIFO (Last In, First Out) order, what type of data structure comes to mind? Think about how a queue works and compare that to how a stack works.",
     "error": null
   }
 ]

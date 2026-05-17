@@ -1,21 +1,41 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #0f172a;
+  --background: #383838;
+  --foreground: #ffffff;
+  
+  --retro-blue: #0000a8;
+  --retro-gray: #a8a8a8;
+  --retro-darkgray: #545454;
+  --retro-red: #d50000;
+  --retro-yellow: #ffff55;
+  --retro-green: #22c55e;
+  
+  /* Keep old variables to prevent breaking until full refactor */
+  --terminal-green: #ffffff;
+  --terminal-amber: #ffff55;
+  --terminal-cyan: #a8a8a8;
+  --terminal-red: #d50000;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: "Courier New", Courier, monospace;
+  --font-mono: "Courier New", Courier, monospace;
+  
+  --color-terminal-green: var(--terminal-green);
+  --color-terminal-amber: var(--terminal-amber);
+  --color-terminal-cyan: var(--terminal-cyan);
+  --color-terminal-red: var(--terminal-red);
+  --color-terminal-bg: var(--retro-blue);
   
   --animate-float: float 6s ease-in-out infinite;
   --animate-pulse-slow: pulse-slow 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
   --animate-glow: glow 3s ease-in-out infinite alternate;
   --animate-blob: blob 7s infinite;
   --animate-slide-up: slide-up 0.5s ease-out forwards;
+  --animate-flicker: flicker 0.15s infinite;
 }
 
 @keyframes float {
@@ -30,8 +50,8 @@
 }
 
 @keyframes glow {
-  0% { box-shadow: 0 0 10px rgba(99, 102, 241, 0.2), 0 0 20px rgba(99, 102, 241, 0.2); }
-  100% { box-shadow: 0 0 20px rgba(99, 102, 241, 0.6), 0 0 40px rgba(99, 102, 241, 0.4); }
+  0% { box-shadow: 0 0 10px rgba(0, 0, 168, 0.2), 0 0 20px rgba(0, 0, 168, 0.2); }
+  100% { box-shadow: 0 0 20px rgba(0, 0, 168, 0.6), 0 0 40px rgba(0, 0, 168, 0.4); }
 }
 
 @keyframes blob {
@@ -46,36 +66,122 @@
   100% { opacity: 1; transform: translateY(0); }
 }
 
+@keyframes flicker {
+  0% { opacity: 0.95; }
+  50% { opacity: 1; }
+  100% { opacity: 0.98; }
+}
+
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0f172a; /* Slate 900 */
-    --foreground: #f8fafc; /* Slate 50 */
+    --background: #383838;
+    --foreground: #ffffff;
   }
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: "Courier New", Courier, monospace;
   overflow-x: hidden;
+  margin: 0;
 }
 
-/* Custom Utilities */
+/* CRT Scanlines and Overlay */
+.crt-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: linear-gradient(
+    rgba(18, 16, 16, 0) 50%,
+    rgba(0, 0, 0, 0.25) 50%
+  );
+  background-size: 100% 4px;
+  pointer-events: none;
+  z-index: 9999;
+}
+
+.crt-flicker {
+  animation: flicker 0.15s infinite;
+  pointer-events: none;
+}
+
+/* Custom Utilities for Retro Theme */
 .glass-panel {
-  background: rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--retro-blue);
+  border: 4px solid var(--retro-gray);
+  border-top-color: #ffffff;
+  border-left-color: #ffffff;
+  border-bottom-color: var(--retro-darkgray);
+  border-right-color: var(--retro-darkgray);
+  box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5);
 }
 
 .dark .glass-panel {
-  background: rgba(15, 23, 42, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: var(--retro-blue);
+  border: 4px solid var(--retro-gray);
+  border-top-color: #ffffff;
+  border-left-color: #ffffff;
+  border-bottom-color: var(--retro-darkgray);
+  border-right-color: var(--retro-darkgray);
+  box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5);
 }
 
 .text-gradient {
   background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  background-image: linear-gradient(to right, #818cf8, #c084fc, #f472b6);
+  background-image: linear-gradient(to right, #ffffff, #a8a8a8);
+}
+
+.text-glow-green {
+  text-shadow: 2px 2px 0px #000;
+}
+
+.text-glow-amber {
+  text-shadow: 2px 2px 0px #000;
+}
+
+.text-glow-cyan {
+  text-shadow: 2px 2px 0px #000;
+}
+
+.text-glow-red {
+  text-shadow: 2px 2px 0px #000;
+}
+
+.retro-btn {
+  background: var(--retro-gray);
+  color: #000;
+  border: 4px solid var(--retro-gray);
+  border-top-color: #ffffff;
+  border-left-color: #ffffff;
+  border-bottom-color: var(--retro-darkgray);
+  border-right-color: var(--retro-darkgray);
+  transition: none;
+  font-weight: bold;
+}
+
+.retro-btn:hover {
+  background: #ffffff;
+  border-top-color: var(--retro-gray);
+  border-left-color: var(--retro-gray);
+}
+
+.retro-btn:active {
+  background: var(--retro-gray);
+  border-top-color: var(--retro-darkgray);
+  border-left-color: var(--retro-darkgray);
+  border-bottom-color: #ffffff;
+  border-right-color: #ffffff;
+  padding-top: 2px;
+  padding-left: 2px;
+}
+
+/* Blinking Cursor Indicator */
+.cursor-blink::after {
+  content: "_";
+  animation: pulse-slow 1s step-end infinite;
 }

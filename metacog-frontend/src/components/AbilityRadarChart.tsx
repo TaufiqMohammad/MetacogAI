@@ -21,20 +21,21 @@ const abilityData = [
 
 export default function AbilityRadarChart() {
   return (
-    <div className="flex h-full min-h-[400px] w-full flex-col rounded-2xl glass-panel p-6 shadow-sm transition-all hover:shadow-indigo-500/10">
-      <h3 className="mb-2 text-xl font-bold text-slate-900 dark:text-white">
+    <div className="flex h-full min-h-[400px] w-full flex-col border-4 border-[var(--retro-gray)] bg-black p-6 font-mono text-white">
+      <h3 className="mb-2 text-xl font-bold text-white uppercase">
         Cognitive Skill Tree (Ability Map)
       </h3>
-      <p className="mb-4 text-sm text-slate-500 dark:text-slate-400">
+      <p className="mb-4 text-sm text-gray-400 uppercase">
         Your dynamic XP distribution across different cognitive domains.
       </p>
-      <div className="flex-1">
+      
+      <div className="flex-1 w-full h-full min-h-[300px]">
         <ResponsiveContainer width="100%" height="100%">
           <RadarChart cx="50%" cy="50%" outerRadius="75%" data={abilityData}>
-            <PolarGrid stroke="#6366f1" strokeOpacity={0.3} />
+            <PolarGrid stroke="#888" strokeOpacity={0.4} />
             <PolarAngleAxis 
               dataKey="subject" 
-              tick={{ fill: "#94a3b8", fontSize: 13, fontWeight: 600 }} 
+              tick={{ fill: "#ffffff", fontSize: 12, fontWeight: 700 }} 
             />
             <PolarRadiusAxis 
               angle={30} 
@@ -44,27 +45,23 @@ export default function AbilityRadarChart() {
             />
             <Tooltip 
               contentStyle={{ 
-                backgroundColor: 'rgba(15, 23, 42, 0.95)', 
-                borderColor: 'rgba(99, 102, 241, 0.2)', 
-                borderRadius: '12px',
+                backgroundColor: '#222', 
+                borderColor: 'var(--retro-gray)', 
+                borderWidth: '4px',
+                borderRadius: '0px',
+                fontFamily: 'monospace',
                 color: '#fff'
               }}
-              itemStyle={{ color: '#818cf8', fontWeight: 'bold' }}
+              itemStyle={{ color: 'var(--retro-yellow)', fontWeight: 'bold' }}
             />
             <Radar
               name="Ability XP"
               dataKey="ability"
-              stroke="#818cf8"
-              strokeWidth={2}
-              fill="url(#colorAbility)"
+              stroke="var(--retro-yellow)"
+              strokeWidth={3}
+              fill="var(--retro-blue)"
               fillOpacity={0.6}
             />
-            <defs>
-              <linearGradient id="colorAbility" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#818cf8" stopOpacity={0.8} />
-                <stop offset="95%" stopColor="#c084fc" stopOpacity={0.2} />
-              </linearGradient>
-            </defs>
           </RadarChart>
         </ResponsiveContainer>
       </div>

@@ -13,102 +13,90 @@ import {
   Network, 
   Calculator,
   ArrowLeft,
-  Loader2
+  Loader2,
+  Zap,
+  Activity,
+  Crosshair,
+  ShieldAlert,
+  GraduationCap
 } from "lucide-react";
 import Link from "next/link";
+import { audioSynth } from "@/utils/audio";
 
 const SUBJECTS = [
   { 
     id: "ds", 
     name: "Data Structures", 
-    icon: <Network className="h-6 w-6" />, 
-    color: "bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400" 
+    icon: <Network className="h-8 w-8" />
   },
   { 
     id: "os", 
     name: "Operating Systems", 
-    icon: <Cpu className="h-6 w-6" />, 
-    color: "bg-purple-50 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400" 
+    icon: <Cpu className="h-8 w-8" />
   },
   { 
     id: "db", 
     name: "Database Systems", 
-    icon: <Database className="h-6 w-6" />, 
-    color: "bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-400" 
+    icon: <Database className="h-8 w-8" />
   },
   { 
     id: "la", 
     name: "Linear Algebra", 
-    icon: <Calculator className="h-6 w-6" />, 
-    color: "bg-orange-50 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400" 
+    icon: <Calculator className="h-8 w-8" />
   },
 ];
 
 export default function QuizPage() {
+  const [isBriefingComplete, setIsBriefingComplete] = useState(false);
   const [selectedSubject, setSelectedSubject] = useState<string | null>(null);
   
   // Data State
   const [questions, setQuestions] = useState<Question[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   
+  // Game HUD State
+  const [shield, setShield] = useState(100);
+  const [ci, setCi] = useState(50);
+  const [mxp, setMxp] = useState(0);
+
   // Quiz State
   const [currentIndex, setCurrentIndex] = useState(0);
   const [responses, setResponses] = useState<QuizResponse[]>([]);
   const [isFinished, setIsFinished] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
   
   // Socratic Intervention State
   const [showIntervention, setShowIntervention] = useState(false);
   const [lastSelectedAnswer, setLastSelectedAnswer] = useState<number>(0);
 
-  const submitQuizResults = async () => {
-    setIsSubmitting(true);
-    try {
-      const response = await fetch("http://localhost:8000/api/quiz/submit", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          subject: selectedSubject || "Unknown",
-          responses: responses,
-        }),
-      });
-      if (!response.ok) {
-        throw new Error("Failed to submit results");
-      }
-    } catch (error) {
-      console.error("Error submitting quiz results:", error);
-    } finally {
-      setIsSubmitting(false);
+  // Sync MXP from localStorage
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const storedMxp = localStorage.getItem("metacog_mxp");
+      if (storedMxp) setMxp(parseInt(storedMxp, 10));
+    }
+  }, []);
+
+  const saveMxp = (newMxp: number) => {
+    setMxp(newMxp);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("metacog_mxp", newMxp.toString());
     }
   };
-
-  useEffect(() => {
-    if (isFinished && responses.length > 0) {
-      submitQuizResults();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isFinished]);
 
   const fetchQuizData = async (subject: string) => {
     setIsLoading(true);
     try {
+      audioSynth.playTick();
       const response = await fetch("http://127.0.0.1:8000/api/quiz/generate", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ subject, question_count: 5 }),
       });
-      
-      if (!response.ok) {
-        throw new Error("Failed to fetch questions");
-      }
-      
+      if (!response.ok) throw new Error("Failed to fetch questions");
       const data = await response.json();
       setQuestions(data);
     } catch (error) {
       console.error("Error fetching quiz data:", error);
-      // In a real app, you would handle this error state in the UI
     } finally {
       setIsLoading(false);
     }
@@ -119,6 +107,7 @@ export default function QuizPage() {
       setCurrentIndex((prev) => prev + 1);
     } else {
       setIsFinished(true);
+      audioSynth.playSuccess();
     }
   };
 
@@ -135,11 +124,27 @@ export default function QuizPage() {
       confidenceLevel: confidence,
       isCorrect,
     };
-
     setResponses((prev) => [...prev, newResponse]);
 
-    // Check for high-confidence error
-    if (!isCorrect && confidence === "certain") {
+    // Game Logic
+    if (isCorrect && confidence === "certain") {
+      // Mastery
+      setCi(c => Math.min(100, c + 20));
+      saveMxp(mxp + 50);
+      audioSynth.playHeal();
+    } else if (!isCorrect && (confidence === "doubtful" || confidence === "guessing")) {
+      // Foundational Gap (Awareness bonus)
+      setCi(c => Math.min(100, c + 10));
+      saveMxp(mxp + 25);
+    } else if (isCorrect && (confidence === "doubtful" || confidence === "guessing")) {
+      // Lucky Guess
+      setCi(c => Math.min(100, c + 5));
+      saveMxp(mxp + 15);
+    } else if (!isCorrect && confidence === "certain") {
+      // DANGER ZONE - System Anomaly
+      setCi(c => Math.max(0, c - 25));
+      setShield(s => Math.max(0, s - 25));
+      audioSynth.playDamage();
       setLastSelectedAnswer(selectedOption);
       setShowIntervention(true);
       return; // Halt advancement
@@ -148,30 +153,99 @@ export default function QuizPage() {
     advanceQuiz();
   };
   
-  const handleCloseIntervention = () => {
+  const handleCloseIntervention = (solved: boolean) => {
     setShowIntervention(false);
+    if (solved) {
+      setShield(s => Math.min(100, s + 25));
+      saveMxp(mxp + 100); // Boss bonus!
+    }
     advanceQuiz();
   };
 
   const handleRestart = () => {
+    audioSynth.playTick();
     setCurrentIndex(0);
     setResponses([]);
     setIsFinished(false);
     setShowIntervention(false);
     setSelectedSubject(null);
     setQuestions([]);
+    setShield(100);
+    setCi(50);
   };
+
+  // 0. Briefing View
+  if (!isBriefingComplete) {
+    return (
+      <section className="mx-auto max-w-4xl px-4 py-16 sm:px-6 lg:px-8">
+        <div className="glass-panel p-8 text-white relative">
+          <h1 className="text-3xl font-bold tracking-tight uppercase mb-6 text-center text-gradient">
+            OPERATION: METACOG
+          </h1>
+          <p className="mb-8 text-center text-lg text-gray-300">
+            Welcome to the training simulator. This isn't just about getting answers right—it's about knowing <i>how confident</i> you are. 
+          </p>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
+            <div className="border-4 border-[var(--retro-gray)] bg-[#22c55e]/20 p-4">
+              <div className="flex items-center gap-2 mb-2 text-white">
+                <Crosshair className="h-6 w-6 text-[#22c55e]" />
+                <h3 className="font-bold text-xl uppercase">Mastery</h3>
+              </div>
+              <p className="text-sm">Correct + Certain. You know your stuff. Rewards maximum MXP and Calibration.</p>
+            </div>
+            
+            <div className="border-4 border-[var(--retro-gray)] bg-[#f59e0b]/20 p-4">
+              <div className="flex items-center gap-2 mb-2 text-white">
+                <Activity className="h-6 w-6 text-[#f59e0b]" />
+                <h3 className="font-bold text-xl uppercase">Lucky Guess</h3>
+              </div>
+              <p className="text-sm">Correct + Doubtful. You survived, but you need to review this to build true confidence.</p>
+            </div>
+
+            <div className="border-4 border-[var(--retro-gray)] bg-[#ef4444]/20 p-4">
+              <div className="flex items-center gap-2 mb-2 text-white">
+                <ShieldAlert className="h-6 w-6 text-[#ef4444]" />
+                <h3 className="font-bold text-xl uppercase">Danger Zone</h3>
+              </div>
+              <p className="text-sm">Incorrect + Certain. The ultimate trap. You will take damage and must debug your logic to survive.</p>
+            </div>
+
+            <div className="border-4 border-[var(--retro-gray)] bg-[#06b6d4]/20 p-4">
+              <div className="flex items-center gap-2 mb-2 text-white">
+                <GraduationCap className="h-6 w-6 text-[#06b6d4]" />
+                <h3 className="font-bold text-xl uppercase">Foundational Gap</h3>
+              </div>
+              <p className="text-sm">Incorrect + Doubtful. You knew you didn't know it. Self-awareness grants a small bonus!</p>
+            </div>
+          </div>
+
+          <div className="flex justify-center">
+            <button
+              onClick={() => {
+                audioSynth.playTick();
+                setIsBriefingComplete(true);
+              }}
+              className="retro-btn px-8 py-4 text-xl uppercase w-full md:w-auto"
+            >
+              Accept Mission
+            </button>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   // 1. Subject Selection View
   if (!selectedSubject) {
     return (
       <section className="mx-auto max-w-5xl px-4 py-16 sm:px-6 lg:px-8">
-        <div className="mb-12 text-center">
-          <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white sm:text-4xl">
-            Choose a Domain to Calibrate Your Metacognition
+        <div className="mb-12 text-center border-b-4 border-[var(--retro-gray)] pb-8">
+          <h1 className="text-3xl font-bold tracking-tight text-white uppercase text-gradient">
+            SELECT EPISODE
           </h1>
-          <p className="mx-auto mt-4 max-w-2xl text-lg text-gray-500 dark:text-gray-400">
-            Select a subject area to begin your adaptive assessment. We'll test both your knowledge and how well you evaluate your own confidence.
+          <p className="mx-auto mt-4 max-w-2xl text-lg text-gray-300">
+            Choose your combat zone. Your Cognitive Shield relies on accurate self-assessment.
           </p>
         </div>
 
@@ -183,12 +257,12 @@ export default function QuizPage() {
                 setSelectedSubject(subject.name);
                 fetchQuizData(subject.name);
               }}
-              className="group flex flex-col items-center justify-center rounded-2xl border border-gray-200 bg-white p-8 text-center shadow-sm transition-all duration-200 hover:-translate-y-1 hover:border-indigo-300 hover:shadow-md dark:border-gray-800 dark:bg-gray-900 dark:hover:border-indigo-700"
+              className="retro-btn flex flex-col items-center justify-center p-8 text-center"
             >
-              <div className={`mb-5 flex h-16 w-16 items-center justify-center rounded-2xl ${subject.color}`}>
+              <div className="mb-5 flex h-16 w-16 items-center justify-center">
                 {subject.icon}
               </div>
-              <h3 className="text-lg font-semibold text-gray-900 transition-colors group-hover:text-indigo-600 dark:text-white dark:group-hover:text-indigo-400">
+              <h3 className="text-lg font-bold uppercase">
                 {subject.name}
               </h3>
             </button>
@@ -201,22 +275,10 @@ export default function QuizPage() {
   // 2. Loading View
   if (isLoading) {
     return (
-      <section className="flex min-h-[50vh] flex-col items-center justify-center px-4 py-16">
-        <Loader2 className="h-12 w-12 animate-spin text-indigo-600 dark:text-indigo-400" />
-        <p className="mt-6 text-lg font-medium text-gray-700 dark:text-gray-300 animate-pulse">
-          Gemini AI is constructing your metacognitive matrix...
-        </p>
-      </section>
-    );
-  }
-
-  // 3. Submitting View
-  if (isSubmitting) {
-    return (
-      <section className="flex min-h-[50vh] flex-col items-center justify-center px-4 py-16">
-        <Loader2 className="h-12 w-12 animate-spin text-indigo-600 dark:text-indigo-400" />
-        <p className="mt-6 text-lg font-medium text-gray-700 dark:text-gray-300 animate-pulse">
-          Syncing your performance data to your Metacognitive Matrix...
+      <section className="flex min-h-[50vh] flex-col items-center justify-center px-4 py-16 font-mono text-white">
+        <Loader2 className="h-12 w-12 animate-spin mb-4" />
+        <p className="mt-6 text-xl font-bold animate-pulse text-[var(--retro-yellow)]">
+          LOADING LEVEL DATA...
         </p>
       </section>
     );
@@ -225,14 +287,14 @@ export default function QuizPage() {
   // Fallback if no questions loaded
   if (questions.length === 0) {
     return (
-      <section className="flex min-h-[50vh] flex-col items-center justify-center px-4 py-16">
-        <p className="text-lg text-red-500">Failed to load questions or no questions available.</p>
+      <section className="flex min-h-[50vh] flex-col items-center justify-center px-4 py-16 text-white glass-panel max-w-2xl mx-auto mt-10">
+        <p className="text-xl font-bold text-[var(--retro-red)] mb-6">MISSION FAILED: NO DATA RETURNED</p>
         <button
           onClick={handleRestart}
-          className="mt-4 flex items-center gap-2 rounded-lg bg-indigo-600 px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-500"
+          className="retro-btn flex items-center gap-2 px-6 py-3 uppercase"
         >
-          <ArrowLeft className="h-4 w-4" />
-          Go Back
+          <ArrowLeft className="h-5 w-5" />
+          Abort Sequence
         </button>
       </section>
     );
@@ -244,83 +306,85 @@ export default function QuizPage() {
 
     return (
       <section className="mx-auto max-w-4xl px-4 py-16 sm:px-6 lg:px-8">
-        <div className="mb-8 text-center">
-          <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
-            Quiz Complete!
-          </h1>
-          <p className="mt-4 text-lg text-gray-500 dark:text-gray-400">
-            You scored {score} out of {questions.length}. Here is a summary
-            of your responses before we wire up the dashboard.
-          </p>
-        </div>
+        <div className="glass-panel p-8 mb-8">
+          <div className="mb-8 text-center border-b-4 border-[var(--retro-gray)] pb-6">
+            <h1 className="text-3xl font-bold tracking-tight text-[var(--retro-yellow)] uppercase text-glow-amber">
+              LEVEL COMPLETED
+            </h1>
+            <p className="mt-4 text-xl text-white">
+              KILLS (SCORE): {score}/{questions.length} | FINAL CI: {ci}% | SHIELD: {shield}%
+            </p>
+          </div>
 
-        <div className="space-y-6">
-          {responses.map((response, index) => {
-            const question = questions[index];
-            return (
-              <div
-                key={response.questionId}
-                className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-gray-900"
-              >
-                <div className="mb-4 flex items-start justify-between gap-4">
-                  <div>
-                    <span className="mb-2 inline-block rounded-full bg-indigo-50 px-2.5 py-0.5 text-xs font-medium text-indigo-700 dark:bg-indigo-950/50 dark:text-indigo-300">
-                      {question.topic}
-                    </span>
-                    <h3 className="text-lg font-medium text-gray-900 dark:text-white">
-                      {question.questionText}
-                    </h3>
-                  </div>
-                  {response.isCorrect ? (
-                    <div className="flex shrink-0 items-center gap-1 text-green-600 dark:text-green-500">
-                      <CheckCircle2 className="h-5 w-5" />
-                      <span className="text-sm font-medium">Correct</span>
+          <div className="space-y-6">
+            {responses.map((response, index) => {
+              const question = questions[index];
+              return (
+                <div
+                  key={response.questionId}
+                  className="border-4 border-[var(--retro-gray)] bg-[#111] p-6 text-white"
+                >
+                  <div className="mb-4 flex items-start justify-between gap-4">
+                    <div>
+                      <span className="mb-2 inline-block px-2 py-1 text-xs font-bold bg-[var(--retro-blue)] border-2 border-white uppercase">
+                        {question.topic}
+                      </span>
+                      <h3 className="text-lg font-bold mt-2">
+                        {question.questionText}
+                      </h3>
                     </div>
-                  ) : (
-                    <div className="flex shrink-0 items-center gap-1 text-red-600 dark:text-red-500">
-                      <XCircle className="h-5 w-5" />
-                      <span className="text-sm font-medium">Incorrect</span>
+                    {response.isCorrect ? (
+                      <div className="flex shrink-0 items-center gap-1 text-[#22c55e]">
+                        <CheckCircle2 className="h-6 w-6" />
+                        <span className="text-base font-bold uppercase">Valid</span>
+                      </div>
+                    ) : (
+                      <div className="flex shrink-0 items-center gap-1 text-[var(--retro-red)] text-glow-red">
+                        <XCircle className="h-6 w-6" />
+                        <span className="text-base font-bold uppercase">Invalid</span>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="grid gap-4 sm:grid-cols-2 border-t-2 border-[var(--retro-gray)] pt-4">
+                    <div>
+                      <p className="text-sm font-bold text-gray-400">
+                        SUBMITTED VALUE:
+                      </p>
+                      <p className="mt-1 text-base font-bold text-white">
+                        {question.options[response.selectedAnswerIndex]}
+                      </p>
                     </div>
-                  )}
-                </div>
-
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <div>
-                    <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                      Your Answer:
-                    </p>
-                    <p className="mt-1 text-sm text-gray-900 dark:text-gray-200">
-                      {question.options[response.selectedAnswerIndex]}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                      Confidence Level:
-                    </p>
-                    <p className="mt-1 text-sm capitalize text-gray-900 dark:text-gray-200">
-                      {response.confidenceLevel}
-                    </p>
+                    <div>
+                      <p className="text-sm font-bold text-gray-400">
+                        CONFIDENCE CALIBRATION:
+                      </p>
+                      <p className="mt-1 text-base font-bold capitalize text-[var(--retro-yellow)]">
+                        {response.confidenceLevel}
+                      </p>
+                    </div>
                   </div>
                 </div>
-              </div>
-            );
-          })}
-        </div>
+              );
+            })}
+          </div>
 
-        <div className="mt-8 flex justify-center gap-4">
-          <button
-            onClick={handleRestart}
-            className="flex items-center gap-2 rounded-lg bg-indigo-600 px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-          >
-            <RefreshCcw className="h-4 w-4" />
-            Choose New Subject
-          </button>
-          <Link
-            href="/dashboard"
-            className="flex items-center justify-center rounded-lg border border-gray-300 bg-white px-6 py-3 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200 dark:hover:bg-gray-800"
-          >
-            View Dashboard
-          </Link>
+          <div className="mt-8 flex flex-col sm:flex-row justify-center gap-4">
+            <button
+              onClick={handleRestart}
+              className="retro-btn flex items-center justify-center gap-2 px-6 py-4 text-base uppercase"
+            >
+              <RefreshCcw className="h-5 w-5" />
+              Next Level
+            </button>
+            <Link
+              href="/dashboard"
+              onClick={() => audioSynth.playTick()}
+              className="retro-btn flex items-center justify-center px-6 py-4 text-base uppercase bg-[var(--retro-blue)] text-white hover:text-black"
+            >
+              Enter Dashboard
+            </Link>
+          </div>
         </div>
       </section>
     );
@@ -328,39 +392,66 @@ export default function QuizPage() {
 
   // 4. Quiz Interface View
   return (
-    <section className="mx-auto max-w-3xl px-4 py-16 sm:px-6 lg:px-8 relative">
-      <div className="mb-8">
-        <div className="mb-4 flex items-center justify-between">
-          <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
-            Metacognitive Quiz
-          </h1>
-          <button
-            onClick={handleRestart}
-            className="flex items-center gap-1 text-sm font-medium text-gray-500 hover:text-indigo-600 dark:text-gray-400 dark:hover:text-indigo-400 transition-colors"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Change Subject
-          </button>
-        </div>
-        <p className="text-gray-500 dark:text-gray-400">
-          Question {currentIndex + 1} of {questions.length}
-        </p>
-        
-        {/* Progress Bar */}
-        <div className="mt-4 h-2 w-full overflow-hidden rounded-full bg-gray-200 dark:bg-gray-800">
-          <div
-            className="h-full bg-indigo-600 transition-all duration-300 ease-out dark:bg-indigo-500"
-            style={{
-              width: `${((currentIndex + 1) / questions.length) * 100}%`,
-            }}
-          />
-        </div>
+    <section className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8 relative min-h-[80vh] flex flex-col justify-end">
+      <div className="flex-1">
+        <QuizCard
+          question={questions[currentIndex]}
+          onSubmit={handleAnswerSubmit}
+        />
       </div>
 
-      <QuizCard
-        question={questions[currentIndex]}
-        onSubmit={handleAnswerSubmit}
-      />
+      {/* Dynamic HUD (Bottom Fixed like DOOM/Wolf3D) */}
+      <div className="hud-panel p-4 mt-8 flex flex-col md:flex-row gap-4 justify-between items-center shadow-lg">
+        
+        {/* Shield / Health Bar */}
+        <div className="flex flex-col gap-1 w-full md:w-1/3">
+          <div className="flex justify-between text-sm font-bold text-white uppercase">
+            <span>HEALTH SHIELD</span>
+            <span>{shield}%</span>
+          </div>
+          <div className={`h-6 w-full border-4 ${shield < 30 ? 'border-[var(--retro-red)] animate-pulse' : 'border-white'} bg-black p-0.5`}>
+            <div 
+              className={`h-full transition-all duration-300 ${shield < 30 ? 'bg-[var(--retro-red)]' : 'bg-[var(--retro-blue)]'}`} 
+              style={{ width: `${shield}%` }} 
+            />
+          </div>
+        </div>
+
+        {/* Stats */}
+        <div className="flex gap-8 items-center bg-black border-4 border-[var(--retro-gray)] p-3">
+          <div className="flex flex-col items-center justify-center">
+            <span className="text-[10px] text-gray-400 uppercase font-bold">Level</span>
+            <div className="flex items-center gap-1 text-white font-bold text-2xl">
+              {currentIndex + 1}
+            </div>
+          </div>
+          
+          <div className="flex flex-col items-center justify-center border-l-2 border-[var(--retro-gray)] pl-4">
+            <span className="text-[10px] text-gray-400 uppercase font-bold">Calib Idx</span>
+            <div className="flex items-center gap-1 text-white font-bold text-2xl">
+              <Activity className="h-6 w-6 text-[#22c55e]" /> {ci}
+            </div>
+          </div>
+          
+          <div className="flex flex-col items-center justify-center border-l-2 border-[var(--retro-gray)] pl-4">
+            <span className="text-[10px] text-gray-400 uppercase font-bold">Total MXP</span>
+            <div className="flex items-center gap-1 text-white font-bold text-2xl">
+              <Zap className="h-6 w-6 text-[var(--retro-yellow)] fill-current" /> {mxp}
+            </div>
+          </div>
+        </div>
+
+        {/* Abort */}
+        <div className="flex flex-col items-center">
+          <button
+            onClick={handleRestart}
+            className="retro-btn flex items-center gap-1 text-xs font-bold px-3 py-2 uppercase border-2"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Abort
+          </button>
+        </div>
+      </div>
 
       {showIntervention && (
         <SocraticIntervention 

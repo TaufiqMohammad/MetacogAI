@@ -21,7 +21,7 @@ import httpx
 # Config
 # ---------------------------------------------------------------------------
 
-BASE_URL = "http://127.0.0.1:8001"
+BASE_URL = "http://127.0.0.1:8000"
 ENDPOINT = f"{BASE_URL}/api/quiz/evaluate"
 TIMEOUT   = 30.0  # seconds
 
