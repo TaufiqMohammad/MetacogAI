@@ -67,7 +67,10 @@ export default function QuizPage() {
       const response = await fetch("http://localhost:8000/api/quiz/submit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(responses),
+        body: JSON.stringify({
+          subject: selectedSubject || "Unknown",
+          responses: responses,
+        }),
       });
       if (!response.ok) {
         throw new Error("Failed to submit results");
@@ -177,7 +180,7 @@ export default function QuizPage() {
             <button
               key={subject.id}
               onClick={() => {
-                setSelectedSubject(subject.id);
+                setSelectedSubject(subject.name);
                 fetchQuizData(subject.name);
               }}
               className="group flex flex-col items-center justify-center rounded-2xl border border-gray-200 bg-white p-8 text-center shadow-sm transition-all duration-200 hover:-translate-y-1 hover:border-indigo-300 hover:shadow-md dark:border-gray-800 dark:bg-gray-900 dark:hover:border-indigo-700"

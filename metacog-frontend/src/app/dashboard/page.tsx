@@ -1,4 +1,5 @@
 import MatrixDashboard, { DashboardDataPoint } from "@/components/MatrixDashboard";
+import AbilityRadarChart from "@/components/AbilityRadarChart";
 import { AlertOctagon, CheckCircle2, AlertTriangle, HelpCircle } from "lucide-react";
 
 // Mock history data distributed across all 4 quadrants
@@ -142,9 +143,17 @@ export default function DashboardPage() {
         </p>
       </div>
 
-      {/* Matrix Dashboard Component */}
-      <div className="mb-12">
-        <MatrixDashboard data={MOCK_HISTORY} />
+      {/* Charts Grid */}
+      <div className="mb-12 grid gap-8 lg:grid-cols-2">
+        {/* Matrix Dashboard Component */}
+        <div className="h-[400px] lg:h-auto">
+          <MatrixDashboard data={MOCK_HISTORY} />
+        </div>
+        
+        {/* Ability Graph Component */}
+        <div>
+          <AbilityRadarChart />
+        </div>
       </div>
 
       {/* Critical Fixes Panel */}
