@@ -6,12 +6,13 @@ POST /quiz/generate  — generate a structured question from a topic
 POST /quiz/evaluate  — evaluate a user's answer against the confidence matrix
 """
 
-from typing import Literal
+from typing import Literal, Optional
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
-from app.models.quiz import QuestionResponse, EvaluationResponse
-from app.services.ai_service import generate_question, evaluate_assessment
+from app.models.quiz import QuestionResponse, EvaluationResponse, FrontendQuestion
+from app.models.socratic import SocraticChatRequest, SocraticChatResponse
+from app.services.ai_service import generate_question, generate_questions, evaluate_assessment, chat_socratic_intervention
 
 router = APIRouter(prefix="/quiz", tags=["Quiz"])
 
@@ -20,12 +21,24 @@ router = APIRouter(prefix="/quiz", tags=["Quiz"])
 # ---------------------------------------------------------------------------
 
 class GenerateRequest(BaseModel):
-    topic: str = Field(
-        ...,
+    topic: Optional[str] = Field(
+        None,
         min_length=2,
         max_length=200,
         description="The academic subject or concept to generate a question about.",
         examples=["Photosynthesis", "Binary search trees", "Keynesian economics"],
+    )
+    subject: Optional[str] = Field(
+        None,
+        min_length=2,
+        max_length=200,
+        description="Alternative field name for topic, used by frontend.",
+    )
+    question_count: Optional[int] = Field(
+        5,
+        ge=1,
+        le=10,
+        description="Number of questions to generate for the quiz.",
     )
 
 class EvaluateRequest(BaseModel):
@@ -44,17 +57,24 @@ class EvaluateRequest(BaseModel):
 
 @router.post(
     "/generate",
-    response_model=QuestionResponse,
-    summary="Generate a quiz question",
+    response_model=list[FrontendQuestion],
+    summary="Generate multiple quiz questions",
     description=(
-        "Uses the Gemini model to produce a single structured multiple-choice question "
-        "for the requested topic. The response is guaranteed to match the `QuestionResponse` schema."
+        "Uses the AI model to produce a list of structured multiple-choice questions "
+        "for the requested topic/subject. The response is guaranteed to match the `FrontendQuestion` schema list."
     ),
 )
-async def generate_quiz_question(body: GenerateRequest) -> QuestionResponse:
-    """Generate a new quiz question for the given topic."""
+async def generate_quiz_question(body: GenerateRequest) -> list[FrontendQuestion]:
+    """Generate a list of new quiz questions for the given topic or subject."""
+    topic = body.topic or body.subject
+    if not topic:
+        raise HTTPException(
+            status_code=400,
+            detail="Either 'topic' or 'subject' must be provided in the request body.",
+        )
+    count = body.question_count or 5
     try:
-        return await generate_question(topic=body.topic)
+        return await generate_questions(topic=topic, count=count)
     except Exception as exc:
         raise HTTPException(
             status_code=502,
@@ -103,3 +123,21 @@ async def evaluate_quiz_submission(body: EvaluateRequest) -> EvaluationResponse:
             status_code=502,
             detail=f"AI evaluation failed: {exc}",
         ) from exc
+
+
+@router.post(
+    "/socratic/chat",
+    response_model=SocraticChatResponse,
+    summary="Conduct Socratic Debug Dialogue",
+    description="Takes chat history and context to perform a multi-turn Socratic debug conversation.",
+)
+async def socratic_chat(body: SocraticChatRequest) -> SocraticChatResponse:
+    """Generate the next socratic hint to help the user debug their logic."""
+    try:
+        return await chat_socratic_intervention(request=body)
+    except Exception as exc:
+        raise HTTPException(
+            status_code=502,
+            detail=f"Socratic AI chat failed: {exc}",
+        ) from exc
+

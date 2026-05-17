@@ -1,131 +1,115 @@
 import Link from "next/link";
-import { Brain, BarChart3, ClipboardList, Sparkles, Zap, Shield, ChevronRight } from "lucide-react";
+import { Brain, BarChart3, ClipboardList, Zap, Shield } from "lucide-react";
 
 export default function HomePage() {
   return (
-    <div className="relative min-h-screen overflow-hidden bg-slate-50 dark:bg-slate-950 font-sans text-slate-900 dark:text-slate-50">
-      {/* Background Animated Blobs */}
-      <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="animate-blob absolute top-0 -left-4 w-72 h-72 rounded-full bg-indigo-500/20 mix-blend-multiply blur-3xl filter dark:mix-blend-screen opacity-70"></div>
-        <div className="animate-blob animation-delay-2000 absolute top-0 -right-4 w-72 h-72 rounded-full bg-fuchsia-500/20 mix-blend-multiply blur-3xl filter dark:mix-blend-screen opacity-70"></div>
-        <div className="animate-blob animation-delay-4000 absolute -bottom-8 left-20 w-72 h-72 rounded-full bg-pink-500/20 mix-blend-multiply blur-3xl filter dark:mix-blend-screen opacity-70"></div>
-      </div>
-
-      <main className="relative mx-auto max-w-7xl px-4 py-24 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-[#383838] font-mono text-white p-8 relative">
+      
+      <main className="max-w-5xl mx-auto relative z-10 py-12">
         
-        {/* Hero Section */}
-        <div className="flex flex-col items-center text-center animate-slide-up">
-          
-          <div className="animate-float mb-8 relative inline-flex items-center justify-center">
-            <div className="absolute inset-0 animate-ping rounded-full bg-indigo-400 opacity-20"></div>
-            <div className="relative rounded-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 p-[2px]">
-              <div className="flex h-20 w-20 items-center justify-center rounded-full bg-white dark:bg-slate-900">
-                <Brain className="h-10 w-10 text-indigo-600 dark:text-indigo-400" />
-              </div>
-            </div>
-            {/* Sparkle Badges */}
-            <div className="absolute -right-4 -top-4 rounded-full bg-amber-400 p-1.5 shadow-lg animate-bounce">
-              <Sparkles className="h-4 w-4 text-white" />
-            </div>
-          </div>
-
-          <h1 className="mt-4 text-5xl font-extrabold tracking-tight sm:text-7xl lg:text-8xl">
-            <span className="block text-slate-900 dark:text-white mb-2">Master Your</span>
-            <span className="text-gradient">Metacognition</span>
+        {/* Header Block */}
+        <div className="mb-12 border-b-4 border-[var(--retro-gray)] pb-6 text-center sm:text-left">
+          <h1 className="text-4xl sm:text-5xl font-bold uppercase tracking-tight" style={{ textShadow: "3px 3px 0px #000" }}>
+            HQ: COMMAND CENTER
           </h1>
-          
-          <p className="mx-auto mt-6 max-w-2xl text-lg text-slate-600 dark:text-slate-300 md:text-xl leading-relaxed">
-            Level up your brain! Assess, track, and improve your cognitive skills through highly adaptive, scenario-based challenges. Earn insights and unlock your true potential.
+          <p className="text-gray-400 mt-2 text-sm sm:text-base uppercase tracking-wider">
+            TACTICAL COGNITIVE SIMULATION & telemetry
           </p>
-          
-          <div className="mt-10 flex flex-col sm:flex-row justify-center gap-4 w-full sm:w-auto">
-            <Link
-              href="/quiz"
-              className="group relative flex items-center justify-center gap-2 overflow-hidden rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 px-8 py-4 text-lg font-bold text-white shadow-[0_0_40px_rgba(99,102,241,0.4)] transition-all hover:scale-105 hover:shadow-[0_0_60px_rgba(99,102,241,0.6)] active:scale-95"
-            >
-              <div className="absolute inset-0 bg-white/20 translate-y-full transition-transform group-hover:translate-y-0"></div>
-              <span className="relative flex items-center gap-2">
-                <Zap className="h-5 w-5 fill-current" />
-                Start Mission
-              </span>
-            </Link>
-            <Link
-              href="/dashboard"
-              className="group flex items-center justify-center gap-2 rounded-xl glass-panel px-8 py-4 text-lg font-bold text-slate-800 dark:text-white transition-all hover:scale-105 hover:bg-slate-200/50 dark:hover:bg-slate-800/50 active:scale-95"
-            >
-              <BarChart3 className="h-5 w-5" />
-              View Stats
-            </Link>
-          </div>
+        </div>
 
-          <div className="mt-12 flex items-center gap-4 text-sm font-medium text-slate-500 dark:text-slate-400">
-            <span className="flex items-center gap-1.5"><Shield className="h-4 w-4 text-green-500" /> 100% Adaptive</span>
-            <span className="h-1 w-1 rounded-full bg-slate-300 dark:bg-slate-700"></span>
-            <span className="flex items-center gap-1.5"><Zap className="h-4 w-4 text-amber-500" /> Instant Feedback</span>
+        {/* Central Briefing Deck (Main Blue Retro Panel) */}
+        <div className="glass-panel p-8 mb-12">
+          <div className="flex flex-col items-center text-center">
+            <div className="mb-6 relative inline-flex items-center justify-center border-4 border-white bg-black p-4 shadow-[4px_4px_0px_#000]">
+              <Brain className="h-12 w-12 text-[var(--retro-yellow)]" />
+            </div>
+
+            <h2 className="text-2xl sm:text-3xl font-bold uppercase text-white mb-4">
+              OPERATION: METACOG INITIATIVE
+            </h2>
+            
+            <p className="max-w-2xl text-base text-gray-200 leading-relaxed mb-8 uppercase">
+              Welcome, Agent. This simulator is designed to calibrate your cognitive capacity. Through adaptive scenarios, we will identify your metacognitive blind spots, evaluate your self-awareness index, and maximize your intellectual output.
+            </p>
+            
+            <div className="flex flex-col sm:flex-row gap-6 w-full sm:w-auto">
+              <Link
+                href="/quiz"
+                className="retro-btn px-8 py-4 text-xl uppercase text-center block"
+              >
+                LAUNCH SIMULATOR
+              </Link>
+              <Link
+                href="/dashboard"
+                className="retro-btn px-8 py-4 text-xl uppercase text-center block bg-black border-4 border-[var(--retro-gray)] hover:bg-[#111] text-white"
+              >
+                TACTICAL TELEMETRY
+              </Link>
+            </div>
+
+            <div className="mt-8 flex flex-wrap justify-center gap-6 text-xs font-bold text-gray-300 border-t-2 border-white/20 pt-6 w-full max-w-xl">
+              <span className="flex items-center gap-1.5"><Shield className="h-4 w-4 text-[var(--retro-green)]" /> 100% ADAPTIVE SIMULATOR</span>
+              <span className="flex items-center gap-1.5"><Zap className="h-4 w-4 text-[var(--retro-yellow)]" /> REAL-TIME CALIBRATION FEEDBACK</span>
+            </div>
           </div>
         </div>
 
-        {/* Feature Cards - The "Arsenal" */}
-        <div className="mt-24">
-          <div className="mb-12 text-center">
-            <h2 className="text-3xl font-bold text-slate-900 dark:text-white">Your Cognitive Arsenal</h2>
-            <p className="mt-2 text-slate-600 dark:text-slate-400">Tools to map your mind and accelerate growth.</p>
+        {/* Cognitive Archive - Retro Cards Grid */}
+        <div>
+          <div className="mb-8 text-center sm:text-left">
+            <h3 className="text-2xl font-bold uppercase">TACTICAL MODULES</h3>
+            <p className="text-gray-400 text-sm mt-1 uppercase">Select a node to review cognitive capacity.</p>
           </div>
           
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {[
               {
-                icon: <ClipboardList className="h-8 w-8 text-indigo-500" />,
-                title: "Adaptive Challenges",
+                icon: <ClipboardList className="h-10 w-10 text-[var(--retro-yellow)]" />,
+                title: "ADAPTIVE SIMULATION",
                 description:
-                  "Face dynamic scenarios that adapt to your skill level. Discover your metacognitive blind spots in real-time.",
+                  "Face dynamic training scenarios that adapt to your knowledge levels in real-time. Uncover your cognitive gaps and misconceptions.",
                 href: "/quiz",
-                color: "from-blue-500/10 to-indigo-500/10",
-                borderColor: "group-hover:border-indigo-500/50",
               },
               {
-                icon: <BarChart3 className="h-8 w-8 text-fuchsia-500" />,
-                title: "XP & Analytics",
+                icon: <BarChart3 className="h-10 w-10 text-[var(--retro-yellow)]" />,
+                title: "TACTICAL TELEMETRY",
                 description:
-                  "Track your progress across six dimensions. Watch your stats grow with interactive, beautifully crafted charts.",
+                  "Track your progress across core capabilities. Review your quadrant distribution of Mastery, Lucky Guesses, and Danger Zones.",
                 href: "/dashboard",
-                color: "from-fuchsia-500/10 to-pink-500/10",
-                borderColor: "group-hover:border-fuchsia-500/50",
               },
               {
-                icon: <Brain className="h-8 w-8 text-amber-500" />,
-                title: "Skill Trees",
+                icon: <Brain className="h-10 w-10 text-[var(--retro-yellow)]" />,
+                title: "NEURAL CARTOGRAPHY",
                 description:
-                  "Unlock personalized pathways. Receive targeted recommendations to master self-regulation and reflection.",
-                href: "/",
-                color: "from-amber-500/10 to-orange-500/10",
-                borderColor: "group-hover:border-amber-500/50",
+                  "Unlock advanced nodes using acquired Mind Experience Points (MXP). Map out your learning and cognitive growth pathway.",
+                href: "/skill-tree",
               },
-            ].map(({ icon, title, description, href, color, borderColor }, idx) => (
-              <Link
+            ].map(({ icon, title, description, href }) => (
+              <div
                 key={title}
-                href={href}
-                className={`group relative flex flex-col justify-between overflow-hidden rounded-2xl glass-panel p-8 transition-all duration-300 hover:-translate-y-2 hover:shadow-xl dark:hover:shadow-2xl dark:hover:shadow-indigo-500/10 ${borderColor} animate-slide-up`}
-                style={{ animationDelay: `${idx * 150}ms` }}
+                className="flex flex-col justify-between border-4 border-[var(--retro-gray)] bg-black p-6 shadow-[4px_4px_0px_#000]"
               >
-                <div className={`absolute inset-0 bg-gradient-to-br ${color} opacity-0 transition-opacity group-hover:opacity-100`}></div>
-                
-                <div className="relative z-10">
-                  <div className="mb-6 inline-flex rounded-xl bg-white/80 dark:bg-slate-900/80 p-4 shadow-sm backdrop-blur-md">
+                <div>
+                  <div className="mb-4 inline-block border-2 border-white bg-[#222] p-3">
                     {icon}
                   </div>
-                  <h3 className="mb-3 text-xl font-bold text-slate-900 dark:text-white">
+                  <h4 className="mb-3 text-lg font-bold text-white uppercase tracking-wide">
                     {title}
-                  </h3>
-                  <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
+                  </h4>
+                  <p className="text-gray-300 text-xs sm:text-sm uppercase leading-relaxed">
                     {description}
                   </p>
                 </div>
                 
-                <div className="relative z-10 mt-8 flex items-center text-sm font-bold text-indigo-600 dark:text-indigo-400 opacity-0 transition-all group-hover:opacity-100 group-hover:translate-x-1">
-                  Explore <ChevronRight className="ml-1 h-4 w-4" />
+                <div className="mt-8">
+                  <Link
+                    href={href}
+                    className="retro-btn w-full block text-center py-2 text-sm uppercase"
+                  >
+                    ACCESS MODULE
+                  </Link>
                 </div>
-              </Link>
+              </div>
             ))}
           </div>
         </div>

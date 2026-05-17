@@ -14,6 +14,14 @@ class QuestionResponse(BaseModel):
     options: List[str] = Field(..., description="List of possible answer options")
     correct_index: int = Field(..., description="Index of the correct option in the options list")
 
+class FrontendQuestion(BaseModel):
+    id: str = Field(..., description="Unique identifier for the question")
+    topic: str = Field(..., description="The subject or topic of the question")
+    questionText: str = Field(..., description="The main text or body of the question")
+    options: List[str] = Field(..., description="List of possible answer options")
+    correctAnswerIndex: int = Field(..., description="Zero-based index of the correct option")
+    socraticHint: str = Field(default="", description="A Socratic hint or guidance for the question")
+
 class EvaluationResponse(BaseModel):
     is_correct: bool = Field(..., description="Whether the user's answer was correct")
     learner_state: LearnerState = Field(..., description="The evaluated learner state based on correctness and confidence")
