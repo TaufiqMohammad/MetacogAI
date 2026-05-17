@@ -1,0 +1,146 @@
+﻿# ============================================================
+# MetacogAI - Global .gitignore (root)
+# Applies to both `metacog-frontend/` (Next.js) and
+# `metacog-backend/` (Python/FastAPI)
+# ============================================================
+
+# ------------------------------------------------------------
+# 1) System Files (OS / Editor / IDE)
+# ------------------------------------------------------------
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+Desktop.ini
+$RECYCLE.BIN/
+*.lnk
+
+# Linux
+*~
+.nfs*
+
+# IDEs / editors
+.vscode/
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# JetBrains Fleet
+.fleet/
+
+# Vim / Emacs
+*.swp
+*.swo
+*.swn
+*.bak
+*.tmp
+
+# ------------------------------------------------------------
+# 2) Frontend (Node.js / Next.js)
+# ------------------------------------------------------------
+# Dependencies
+node_modules/
+
+# Next.js build output
+.next/
+
+# Static export output
+out/
+
+# Other common build outputs
+dist/
+build/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Caches
+.cache/
+.turbo/
+.vercel/
+
+# TypeScript / Next.js caches
+*.tsbuildinfo
+
+# Environment files (local-only)
+.env*.local
+
+# ------------------------------------------------------------
+# 3) Backend (Python / FastAPI)
+# ------------------------------------------------------------
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+*.pyd
+
+# Virtual environments
+venv/
+.venv/
+env/
+ENV/
+
+# Python tooling caches
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.pytype/
+.pyre/
+.coverage
+.coverage.*
+htmlcov/
+
+# Packaging / build artifacts
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# FastAPI / uvicorn / gunicorn logs
+*.log
+
+# Environment / secrets
+.env
+.env.*
+!.env.example
+!.env.*.example
+
+# ------------------------------------------------------------
+# Additional sensitive credentials (common)
+# ------------------------------------------------------------
+# Private keys / certificates
+*.pem
+*.key
+*.p12
+*.pfx
+*.cer
+
+# Local SQLite databases / snapshots
+*.sqlite
+*.sqlite3
+
+# ------------------------------------------------------------
+# Python runtime artifacts
+# ------------------------------------------------------------
+# IPython/Jupyter
+.ipynb_checkpoints/
+
+# ------------------------------------------------------------
+# Misc
+# ------------------------------------------------------------
+# dotenv backup files
+.env.bak
+.env.backup
+
