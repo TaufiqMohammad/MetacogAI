@@ -118,7 +118,7 @@ export default function MatrixDashboard({ data }: MatrixDashboardProps) {
   };
 
   return (
-    <div className="h-[500px] w-full rounded-2xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">
+    <div className="flex h-full min-h-[400px] w-full flex-col rounded-2xl glass-panel p-4 shadow-sm transition-all hover:shadow-indigo-500/10">
       <ResponsiveContainer width="100%" height="100%">
         <ScatterChart margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
           {/* Subtle background quadrants using ReferenceArea */}
