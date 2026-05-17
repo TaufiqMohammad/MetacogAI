@@ -67,7 +67,10 @@ export default function QuizPage() {
       const response = await fetch("http://localhost:8000/api/quiz/submit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(responses),
+        body: JSON.stringify({
+          subject: selectedSubject,
+          responses: responses
+        }),
       });
       if (!response.ok) {
         throw new Error("Failed to submit results");
@@ -89,7 +92,7 @@ export default function QuizPage() {
   const fetchQuizData = async (subject: string) => {
     setIsLoading(true);
     try {
-      const response = await fetch("http://localhost:8000/api/quiz/generate", {
+      const response = await fetch("http://127.0.0.1:8000/api/quiz/generate", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
