@@ -102,6 +102,17 @@ Production CORS Update:
 Ensure your backend app/main.py configuration initializes the cross-origin resource sharing middleware with your live Vercel production domain string to authorize API communication.
 
 ---
+### Live Demo
+**Access the live platform here:** [https://metacog-ai-six.vercel.app/](https://metacog-ai-six.vercel.app/)
+
+---
+
+## Deployment
+
+The frontend of this application is configured for seamless deployment on **Vercel**:
+
+1. **Environment Variables:** In your Vercel project settings, ensure you add `NEXT_PUBLIC_API_URL` pointing to your hosted FastAPI backend production URL.
+2. **Production Builds:** Any updates pushed to the `main` branch will automatically trigger a new production deployment.
 
 ## The Team
 
