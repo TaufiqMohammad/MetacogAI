@@ -43,9 +43,12 @@ ALLOWED_ORIGINS = [
     "https://metacog-ai.vercel.app",  # Production frontend
 ]
 if FRONTEND_URL:
-    ALLOWED_ORIGINS.append(FRONTEND_URL)
-    if FRONTEND_URL.endswith("/"):
-        ALLOWED_ORIGINS.append(FRONTEND_URL[:-1])
+    for url in FRONTEND_URL.split(","):
+        url = url.strip()
+        if url:
+            ALLOWED_ORIGINS.append(url)
+            if url.endswith("/"):
+                ALLOWED_ORIGINS.append(url[:-1])
 
 app.add_middleware(
     CORSMiddleware,

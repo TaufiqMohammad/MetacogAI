@@ -21,7 +21,10 @@ _allowed_origins = [
     "http://127.0.0.1:3000",
 ]
 if _frontend_url:
-    _allowed_origins.append(_frontend_url)
+    for url in _frontend_url.split(","):
+        url = url.strip()
+        if url:
+            _allowed_origins.append(url)
 
 app.add_middleware(
     CORSMiddleware,
