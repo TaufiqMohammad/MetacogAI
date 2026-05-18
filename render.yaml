@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: metacog-backend
+    env: python
+    rootDir: metacog-aiprompt
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: OPENAI_BASE_URL
+        value: https://api.groq.com/openai/v1
+      - key: AI_MODEL_NAME
+        value: llama-3.3-70b-versatile
+      - key: FRONTEND_URL
+        sync: false
+      - key: DEMO_MODE
+        value: "false"

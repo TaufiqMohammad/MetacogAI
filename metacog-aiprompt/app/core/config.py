@@ -1,7 +1,7 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
-    GEMINI_API_KEY: str = "dummy-key-for-local-dev"
+    OPENAI_API_KEY: str = "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"
     SUPABASE_URL: str = "http://localhost:8000"
 
     # When True, all AI calls are short-circuited with deterministic mock payloads.

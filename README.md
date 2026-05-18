@@ -54,7 +54,7 @@ When answering questions, users choose their confidence level: Certain, Doubtful
    pip install -r requirements.txt
 4. Add your API keys to your local configuration (.env file):
    SUPABASE_URL=your_supabase_url
-   GEMINI_API_KEY=your_gemini_api_key
+   OPENAI_API_KEY=your_OPENAI_API_KEY
 5. Start the server:
    uvicorn app.main:app --reload
 
@@ -96,7 +96,7 @@ Configuration for Render:
 3. Set the Environment Runtime to Python 3.
 4. Set the Build Command to: pip install -r requirements.txt
 5. Set the Start Command to: uvicorn app.main:app --host 0.0.0.0 --port $PORT
-6. In Advanced Settings, input your production environment variables (SUPABASE_URL, GEMINI_API_KEY).
+6. In Advanced Settings, input your production environment variables (SUPABASE_URL, OPENAI_API_KEY).
 
 Production CORS Update:
 Ensure your backend app/main.py configuration initializes the cross-origin resource sharing middleware with your live Vercel production domain string to authorize API communication.

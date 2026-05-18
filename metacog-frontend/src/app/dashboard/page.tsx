@@ -1,9 +1,12 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import AuthGuard from "@/components/AuthGuard";
 import MatrixDashboard, { DashboardDataPoint } from "@/components/MatrixDashboard";
 import AbilityRadarChart from "@/components/AbilityRadarChart";
-import { AlertOctagon, CheckCircle2, AlertTriangle, HelpCircle, Terminal } from "lucide-react";
+import { AlertOctagon, CheckCircle2, AlertTriangle, HelpCircle, Terminal, Loader2 } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/lib/supabase";
 
 // Mock history data distributed across all 4 quadrants
 const MOCK_HISTORY: DashboardDataPoint[] = [
@@ -129,7 +132,49 @@ const MOCK_HISTORY: DashboardDataPoint[] = [
 ];
 
 export default function DashboardPage() {
-  const criticalFixes = MOCK_HISTORY.filter(
+  const { user } = useAuth();
+  const [dataPoints, setDataPoints] = useState<DashboardDataPoint[]>([]);
+  const [isLoadingHistory, setIsLoadingHistory] = useState(true);
+  const [isDemoMode, setIsDemoMode] = useState(true);
+
+  useEffect(() => {
+    if (!user) return;
+    
+    const fetchHistory = async () => {
+      try {
+        const { data, error } = await supabase
+          .from("user_responses")
+          .select("*, questions(*)")
+          .eq("user_id", user.id);
+        
+        if (!error && data && data.length > 0) {
+          // Map to DashboardDataPoint structure
+          const mappedData = data.map((row: any) => ({
+            id: row.id,
+            topic: row.subject || "General",
+            questionText: row.questions?.questionText || "Quiz Question",
+            userAnswerText: row.questions?.options?.[row.selected_answer_index] || `Selected Option #${row.selected_answer_index + 1}`,
+            confidenceLevel: row.confidence_level.toLowerCase(),
+            isCorrect: row.is_correct,
+          }));
+          setDataPoints(mappedData);
+          setIsDemoMode(false);
+        } else {
+          // Fallback to Mock history if no real data exists yet
+          setDataPoints(MOCK_HISTORY);
+          setIsDemoMode(true);
+        }
+      } catch (err) {
+        console.error("Error loading history:", err);
+      } finally {
+        setIsLoadingHistory(false);
+      }
+    };
+    
+    fetchHistory();
+  }, [user]);
+
+  const criticalFixes = dataPoints.filter(
     (point) => !point.isCorrect && point.confidenceLevel === "certain"
   );
 
@@ -137,21 +182,40 @@ export default function DashboardPage() {
     <AuthGuard>
     <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8 font-mono text-white">
       {/* Header */}
-      <div className="mb-8 border-b-4 border-[var(--retro-gray)] pb-4">
-        <h1 className="text-3xl font-bold tracking-tight uppercase flex items-center gap-3">
-          <Terminal className="h-8 w-8 text-white" />
-          METACOGNITIVE STATS
-        </h1>
-        <p className="mt-2 text-lg text-gray-300">
-          PERFORMANCE VS. CALIBRATION MATRIX
-        </p>
+      <div className="mb-8 border-b-4 border-[var(--retro-gray)] pb-4 flex flex-col md:flex-row md:items-end md:justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight uppercase flex items-center gap-3">
+            <Terminal className="h-8 w-8 text-white" />
+            METACOGNITIVE STATS
+          </h1>
+          <p className="mt-2 text-lg text-gray-300">
+            PERFORMANCE VS. CALIBRATION MATRIX
+          </p>
+        </div>
+        {isDemoMode && !isLoadingHistory && (
+          <div className="border-2 border-[var(--retro-red)] bg-red-950/30 px-3 py-1.5 text-xs text-[var(--retro-red)] font-bold animate-pulse text-glow-red select-none">
+            [DEMO ARCHIVE ACTIVE - TAKE A QUIZ TO SYNC LIVE INTEL]
+          </div>
+        )}
+        {!isDemoMode && !isLoadingHistory && (
+          <div className="border-2 border-[#22c55e] bg-[#14532d]/30 px-3 py-1.5 text-xs text-[#22c55e] font-bold select-none">
+            [LIVE CONNECTION SYNCD - REAL PERFORMANCE ACTIVE]
+          </div>
+        )}
       </div>
 
-      {/* Charts Grid */}
-      <div className="mb-12 grid gap-8 lg:grid-cols-2">
-        <MatrixDashboard data={MOCK_HISTORY} />
-        <AbilityRadarChart />
-      </div>
+      {isLoadingHistory ? (
+        <div className="flex min-h-[30vh] flex-col items-center justify-center">
+          <Loader2 className="h-10 w-10 animate-spin text-[var(--retro-yellow)]" />
+          <p className="mt-4 text-sm animate-pulse text-gray-400">RETRIEVING INTEL FILES...</p>
+        </div>
+      ) : (
+        <>
+          {/* Charts Grid */}
+          <div className="mb-12 grid gap-8 lg:grid-cols-2">
+            <MatrixDashboard data={dataPoints} />
+            <AbilityRadarChart />
+          </div>
 
       {/* Critical Fixes Panel */}
       <div className="border-4 border-[var(--retro-red)] bg-[#222] p-6 shadow-[0_0_20px_rgba(213,0,0,0.5)]">
@@ -252,6 +316,8 @@ export default function DashboardPage() {
           </div>
         ))}
       </div>
+        </>
+      )}
     </section>
     </AuthGuard>
   );

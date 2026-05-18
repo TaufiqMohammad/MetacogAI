@@ -23,6 +23,8 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { audioSynth } from "@/utils/audio";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/lib/supabase";
 
 const SUBJECTS = [
   { 
@@ -48,6 +50,7 @@ const SUBJECTS = [
 ];
 
 function QuizPageInner() {
+  const { user, profile, updateProfile } = useAuth();
   const [isBriefingComplete, setIsBriefingComplete] = useState(false);
   const [selectedSubject, setSelectedSubject] = useState<string | null>(null);
   
@@ -69,18 +72,23 @@ function QuizPageInner() {
   const [showIntervention, setShowIntervention] = useState(false);
   const [lastSelectedAnswer, setLastSelectedAnswer] = useState<number>(0);
 
-  // Sync MXP from localStorage
+  // Sync MXP from profile or localStorage
   useEffect(() => {
-    if (typeof window !== "undefined") {
+    if (profile && profile.mxp !== undefined) {
+      setMxp(profile.mxp);
+    } else if (typeof window !== "undefined") {
       const storedMxp = localStorage.getItem("metacog_mxp");
       if (storedMxp) setMxp(parseInt(storedMxp, 10));
     }
-  }, []);
+  }, [profile]);
 
-  const saveMxp = (newMxp: number) => {
+  const saveMxp = async (newMxp: number) => {
     setMxp(newMxp);
     if (typeof window !== "undefined") {
       localStorage.setItem("metacog_mxp", newMxp.toString());
+    }
+    if (user) {
+      await updateProfile({ mxp: newMxp });
     }
   };
 
@@ -97,12 +105,56 @@ function QuizPageInner() {
       if (!response.ok) throw new Error("Failed to fetch questions");
       const data = await response.json();
       setQuestions(data);
+
+      // Save questions in Supabase so foreign key references work perfectly
+      if (data && data.length > 0) {
+        const rows = data.map((q: any) => ({
+          id: q.id,
+          subject: subject,
+          topic: q.topic,
+          questionText: q.questionText,
+          options: q.options,
+          correctAnswerIndex: q.correctAnswerIndex,
+          socraticHint: q.socraticHint,
+        }));
+        await supabase.from("questions").upsert(rows);
+      }
     } catch (error) {
       console.error("Error fetching quiz data:", error);
     } finally {
       setIsLoading(false);
     }
   };
+
+  // Save responses to Supabase when finished
+  useEffect(() => {
+    if (isFinished && responses.length > 0 && user) {
+      const saveResponses = async () => {
+        const rows = responses.map((r, index) => {
+          return {
+            user_id: user.id,
+            subject: selectedSubject,
+            question_id: r.questionId,
+            selected_answer_index: r.selectedAnswerIndex,
+            confidence_level: r.confidenceLevel.toUpperCase(), // CERTAIN, DOUBTFUL, GUESSING
+            is_correct: r.isCorrect,
+          };
+        });
+        
+        const { error } = await supabase
+          .from("user_responses")
+          .insert(rows);
+        
+        if (error) {
+          console.error("Error saving responses to Supabase:", error);
+        } else {
+          console.log("Responses successfully saved to Supabase!");
+        }
+      };
+      
+      saveResponses();
+    }
+  }, [isFinished, responses, user, questions, selectedSubject]);
 
   const advanceQuiz = () => {
     if (currentIndex < questions.length - 1) {

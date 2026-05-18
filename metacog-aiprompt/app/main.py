@@ -34,11 +34,18 @@ app = FastAPI(
 # and a placeholder for the production Vercel domain.
 # Add your live domain here before deploying to production.
 
+import os
+
+FRONTEND_URL = os.getenv("FRONTEND_URL")
 ALLOWED_ORIGINS = [
     "http://localhost:3000",        # Next.js dev server
     "http://localhost:5173",        # Vite fallback
-    "https://metacog-ai.vercel.app",  # Production frontend (update to your live URL)
+    "https://metacog-ai.vercel.app",  # Production frontend
 ]
+if FRONTEND_URL:
+    ALLOWED_ORIGINS.append(FRONTEND_URL)
+    if FRONTEND_URL.endswith("/"):
+        ALLOWED_ORIGINS.append(FRONTEND_URL[:-1])
 
 app.add_middleware(
     CORSMiddleware,
