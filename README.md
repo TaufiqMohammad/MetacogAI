@@ -7,6 +7,11 @@ By cross-referencing correctness with subjective confidence, the platform expose
 
 ---
 
+## 🔗 Live Site
+**Interact with the deployed production environment:** [https://metacog-ai-six.vercel.app/](https://metacog-ai-six.vercel.app/)
+
+---
+
 ## 🧠 The Metacog 4-State Matrix
 
 Metacog AI maps every user response to a dual-dimensional cognitive matrix based on correctness and declared confidence (Certain, Doubtful, or Guessing):
@@ -121,10 +126,6 @@ The orchestration engine uses the included `render.yaml` specification for zero-
 
 ---
 
-## 🔗 Live Demo
-**Interact with the deployed production environment:** [https://metacog-ai-six.vercel.app/](https://metacog-ai-six.vercel.app/)
-
----
 
 ## 👥 The Hackathon Team
 Engineered in an intensive 24-hour sprint by a dedicated squad:
