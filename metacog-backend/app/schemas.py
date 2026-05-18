@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import Literal
+from typing import Literal, Optional
 
 class QuizGenerationRequest(BaseModel):
     subject: str
@@ -22,6 +22,7 @@ class QuizResponseSchema(BaseModel):
 class QuizSubmissionRequest(BaseModel):
     subject: str
     responses: list[QuizResponseSchema]
+    user_id: Optional[str] = None
 
 class DashboardMetric(BaseModel):
     subject: str

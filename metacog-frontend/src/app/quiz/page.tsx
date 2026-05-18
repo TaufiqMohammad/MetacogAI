@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import QuizCard from "@/components/QuizCard";
 import SocraticIntervention from "@/components/SocraticIntervention";
+import AuthGuard from "@/components/AuthGuard";
 import { Question, QuizResponse, ConfidenceLevel } from "@/types/quiz";
 import { 
   RefreshCcw, 
@@ -46,7 +47,7 @@ const SUBJECTS = [
   },
 ];
 
-export default function QuizPage() {
+function QuizPageInner() {
   const [isBriefingComplete, setIsBriefingComplete] = useState(false);
   const [selectedSubject, setSelectedSubject] = useState<string | null>(null);
   
@@ -87,7 +88,8 @@ export default function QuizPage() {
     setIsLoading(true);
     try {
       audioSynth.playTick();
-      const response = await fetch("http://127.0.0.1:8000/api/quiz/generate", {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
+      const response = await fetch(`${apiUrl}/api/quiz/generate`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ subject, question_count: 5 }),
@@ -461,5 +463,13 @@ export default function QuizPage() {
         />
       )}
     </section>
+  );
+}
+
+export default function QuizPage() {
+  return (
+    <AuthGuard>
+      <QuizPageInner />
+    </AuthGuard>
   );
 }

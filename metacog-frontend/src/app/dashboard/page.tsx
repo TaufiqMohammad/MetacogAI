@@ -1,3 +1,6 @@
+"use client";
+
+import AuthGuard from "@/components/AuthGuard";
 import MatrixDashboard, { DashboardDataPoint } from "@/components/MatrixDashboard";
 import AbilityRadarChart from "@/components/AbilityRadarChart";
 import { AlertOctagon, CheckCircle2, AlertTriangle, HelpCircle, Terminal } from "lucide-react";
@@ -131,6 +134,7 @@ export default function DashboardPage() {
   );
 
   return (
+    <AuthGuard>
     <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8 font-mono text-white">
       {/* Header */}
       <div className="mb-8 border-b-4 border-[var(--retro-gray)] pb-4">
@@ -249,5 +253,6 @@ export default function DashboardPage() {
         ))}
       </div>
     </section>
+    </AuthGuard>
   );
 }

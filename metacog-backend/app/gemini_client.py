@@ -1,16 +1,27 @@
 import json
 import uuid
-from google import genai
-from google.genai import types
 from pydantic import BaseModel
 from app.schemas import QuestionSchema
 
 class QuizContainer(BaseModel):
     questions: list[QuestionSchema]
 
-client = genai.Client()
+# Try to import google genai, but provide a stub if it fails
+try:
+    from google import genai
+    from google.genai import types
+    client = genai.Client()
+    GENAI_AVAILABLE = True
+except ImportError:
+    print("Warning: Google GenAI not available. Quiz generation will be stubbed.")
+    GENAI_AVAILABLE = False
+    client = None
 
 def generate_quiz(subject: str, count: int) -> list[QuestionSchema]:
+    if not GENAI_AVAILABLE or client is None:
+        print(f"Warning: GenAI not available, returning stub questions for {subject}")
+        return _generate_stub_quiz(subject, count)
+    
     system_instruction = (
         "You are an expert educational assessment designer specializing in deep conceptual understanding.\n"
         "Your job is to generate high-quality multiple-choice quiz questions for the given subject.\n\n"
@@ -31,6 +42,7 @@ def generate_quiz(subject: str, count: int) -> list[QuestionSchema]:
     
     prompt = f"Please generate {count} highly technical multiple-choice questions for the subject: '{subject}'."
 
+    from google.genai import types
     config = types.GenerateContentConfig(
         system_instruction=system_instruction,
         response_mime_type="application/json",
@@ -55,3 +67,35 @@ def generate_quiz(subject: str, count: int) -> list[QuestionSchema]:
     except Exception as e:
         print(f"Error parsing Gemini response: {e}")
         return []
+
+def _generate_stub_quiz(subject: str, count: int) -> list[QuestionSchema]:
+    """Generate stub questions for testing when GenAI is not available."""
+    questions = []
+    topics = {
+        "Data Structures": ["Arrays", "Linked Lists", "Binary Trees", "Hash Tables", "Graphs"],
+        "Operating Systems": ["Process Scheduling", "Memory Management", "File Systems", "Concurrency", "I/O"],
+        "Database Systems": ["Relational Algebra", "SQL Queries", "Transaction Management", "Indexing", "Normalization"],
+        "Linear Algebra": ["Matrix Operations", "Eigenvalues", "Vector Spaces", "Orthogonality", "Decomposition"],
+    }
+    
+    topic_list = topics.get(subject, ["General Topic"])
+    
+    for i in range(count):
+        topic = topic_list[i % len(topic_list)]
+        q = QuestionSchema(
+            id=f"stub-{uuid.uuid4()}",
+            topic=topic,
+            questionText=f"[STUB] What is a key concept in {topic}?",
+            options=[
+                "Option A (correct)",
+                "Option B",
+                "Option C",
+                "Option D",
+            ],
+            correctAnswerIndex=0,
+            socraticHint="Think about the fundamental principles of this concept."
+        )
+        questions.append(q)
+    
+    return questions
+

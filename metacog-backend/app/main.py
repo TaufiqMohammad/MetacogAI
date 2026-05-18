@@ -2,6 +2,7 @@
 from fastapi import FastAPI, HTTPException
 # pyrefly: ignore [missing-import]
 from fastapi.middleware.cors import CORSMiddleware
+import os
 
 from app.schemas import (
     QuizGenerationRequest,
@@ -13,9 +14,18 @@ from app.gemini_client import generate_quiz as gemini_generate_quiz
 
 app = FastAPI(title="MetacogAI API", version="0.1.0")
 
+# Allow requests from local dev and the deployed Vercel frontend
+_frontend_url = os.environ.get("FRONTEND_URL", "")
+_allowed_origins = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+]
+if _frontend_url:
+    _allowed_origins.append(_frontend_url)
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=_allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -44,7 +54,7 @@ def generate_quiz(payload: QuizGenerationRequest):
     """
     questions = gemini_generate_quiz(payload.subject, payload.question_count)
     
-    if questions:
+    if questions and supabase:
         rows_to_insert = [
             {
                 "id": q.id,
@@ -78,6 +88,14 @@ def submit_quiz(payload: QuizSubmissionRequest):
     if not payload.responses:
         raise HTTPException(status_code=400, detail="No responses provided.")
 
+    if not supabase:
+        # Stub response when database is not available
+        return {
+            "status": "ok",
+            "message": f"{len(payload.responses)} response(s) would be saved (database unavailable).",
+            "inserted_count": len(payload.responses),
+        }
+
     rows_to_insert = [
         {
             "subject": payload.subject,
@@ -85,6 +103,7 @@ def submit_quiz(payload: QuizSubmissionRequest):
             "selected_answer_index": response.selectedAnswerIndex,
             "confidence_level": response.confidenceLevel,
             "is_correct": response.isCorrect,
+            **({"user_id": payload.user_id} if payload.user_id else {}),
         }
         for response in payload.responses
     ]
