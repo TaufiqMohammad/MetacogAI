@@ -1,125 +1,133 @@
 # Metacog AI: Metacognitive Study Partner
 
-Metacog AI is an educational technology platform designed to beat the "illusion of competence" in learning. Instead of using standard pass/fail testing, it combines Confidence-Based Assessment (CBA) with AI to track not just what you know, but how confident you feel about it.
+> [!NOTE]
+> Metacog AI is an advanced educational technology platform designed to eradicate the **"illusion of competence"** in learning. Instead of relying on traditional binary pass/fail testing, Metacog AI pairs **Confidence-Based Assessment (CBA)** with conversational Socratic AI to track not just *what* a learner knows, but *how confident* they are in that knowledge.
 
-By matching your answers with your declared confidence levels, the app uncovers your exact learning state, isolates hidden misconceptions, and uses conversational AI to help you fix your own logic.
-
----
-
-## The Core Framework
-
-When answering questions, users choose their confidence level: Certain, Doubtful, or Guessing. The app then evaluates them based on four simple states:
-
-*   **Mastery (Correct + High Confidence):** You know the material well. The topic is saved into a spaced-repetition loop for long-term memory.
-*   **Lucky Guess / Doubt (Correct + Low Confidence):** You got it right but hesitated. The app generates similar variations of the concept to help build your certainty.
-*   **The Danger Zone (Incorrect + High Confidence):** You are completely confident but fundamentally wrong. The app immediately pauses the quiz and opens a Socratic dialogue to help you find and fix your mistake.
-*   **Foundational Gap (Incorrect + Low Confidence):** You know you don't know it. The app skips the deep quiz questions and serves up a quick, beginner-friendly micro-lesson.
+By cross-referencing correctness with subjective confidence, the platform exposes underlying cognitive gaps, isolates high-risk misconceptions, and utilizes an interactive, state-aware Socratic tutor to guide learners into correcting their own logic.
 
 ---
 
-## Core Features
+## 🧠 The Metacog 4-State Matrix
 
-*   **Adaptive Quiz Engine:** Generates domain-specific questions in real-time matching your current learning limits.
-*   **Confidence Logging:** Requires you to log your assurance level before seeing any quiz results.
-*   **Analytics Dashboard:** A simple graph mapping out which topics are safe and which ones are in your danger zones.
-*   **Socratic Remediation:** A conversational AI assistant that asks guided questions to help you debug your own logic rather than just giving you the answer.
+Metacog AI maps every user response to a dual-dimensional cognitive matrix based on correctness and declared confidence (Certain, Doubtful, or Guessing):
 
----
-
-## Tech Stack
-
-*   **Frontend:** Next.js (React), Tailwind CSS
-*   **Backend:** Python, FastAPI
-*   **Database:** Supabase (PostgreSQL)
-*   **AI Engine:** Google Gemini API
+| Cognitive State | Correctness | Confidence | Action Taken by Platform |
+| :--- | :--- | :--- | :--- |
+| **🥇 Mastery** | Correct | High | Conceptual validation; schedules the topic for a spaced-repetition retention loop. |
+| **🎲 Lucky Guess** | Correct | Low | Identifies hesitation; generates similar variations to solidify confidence and understanding. |
+| **⚠️ Danger Zone** | Incorrect | High | **Critical Misconception!** Pauses the quiz immediately and triggers a Socratic dialogue. |
+| **🕳️ Foundational Gap** | Incorrect | Low | Simple knowledge gap; bypasses deep testing to present a brief, friendly micro-lesson. |
 
 ---
 
-## Project Structure
+## ✨ Key Features
 
-*   **backend/**: Contains the FastAPI application, database connections, and AI prompt logic.
-*   **frontend/**: Contains the Next.js user interface, quiz views, and analytics graphs.
+- **Dynamic Quiz Generator**: Real-time AI generation of subject-specific questions matched to the learner's limits.
+- **Confidence Logging**: Enforces self-calibration by requiring users to declare their confidence before answers are revealed.
+- **Real-Time Socratic Remediation**: A context-aware conversational tutor that prompts self-correction via iterative questioning rather than simply giving away answers.
+- **Historic Analytics Dashboard**: High-fidelity progression mapping visualizing safe zones and conceptual vulnerabilities.
+- **Unified Authentication**: Seamless registration and session state persistence managed through Supabase.
 
 ---
 
-## Quick Start Setup
+## 🛠️ The Tech Stack
 
-### 1. Backend Setup
-1. Open your terminal and navigate to the backend folder:
-   cd backend
-2. Create and activate a virtual environment:
+- **Frontend**: Next.js (React), Tailwind CSS, hosted on Vercel.
+- **Orchestration Backend (`metacog-aiprompt`)**: FastAPI (Python), AsyncOpenAI client, structured Pydantic schemas, hosted on Render.
+- **AI Core**: High-speed **Llama-3.3-70b-versatile** hosted via **Groq Cloud API** (with OpenAI-compatible client).
+- **Secondary Backend (`metacog-backend`)**: Standard FastAPI implementation integrating the Google Gemini API.
+- **Database & Authentication**: Supabase (PostgreSQL).
+
+---
+
+## 📂 Repository Structure
+
+```filepath
+├── metacog-frontend/       # Next.js React frontend application (Vercel)
+├── metacog-aiprompt/       # Upgraded FastAPI Orchestration Engine (Render)
+├── metacog-backend/        # Alternate FastAPI Backend (Gemini API)
+├── supabase_migration.sql  # Database schemas, constraints, and tables
+└── render.yaml             # Render deployment blueprint configuration
+```
+
+---
+
+## 🚀 Getting Started
+
+### 1. Backend Orchestration Setup (`metacog-aiprompt`)
+
+1. Navigate to the orchestration engine directory:
+   ```bash
+   cd metacog-aiprompt
+   ```
+2. Create and activate a Python virtual environment:
+   ```bash
    python -m venv venv
-   source venv/bin/activate  # On Windows use: venv\Scripts\activate
-3. Install the dependencies:
+   # On Windows:
+   venv\Scripts\activate
+   # On macOS/Linux:
+   source venv/bin/activate
+   ```
+3. Install dependencies:
+   ```bash
    pip install -r requirements.txt
-4. Add your API keys to your local configuration (.env file):
-   SUPABASE_URL=your_supabase_url
-   OPENAI_API_KEY=your_OPENAI_API_KEY
-5. Start the server:
-   uvicorn app.main:app --reload
+   ```
+4. Create a `.env` file in the root of `metacog-aiprompt` and configure your credentials:
+   ```env
+   OPENAI_API_KEY=your_groq_or_openai_api_key
+   OPENAI_BASE_URL=https://api.groq.com/openai/v1  # Optional: For Groq integration
+   AI_MODEL_NAME=llama-3.3-70b-versatile           # Model name of choice
+   FRONTEND_URL=http://localhost:3000              # URL of local frontend dev
+   ```
+5. Launch the live development backend:
+   ```bash
+   uvicorn app.main:app --reload --port 8000
+   ```
 
-### 2. Frontend Setup
-1. Open a new terminal window and navigate to the frontend folder:
-   cd frontend
-2. Install the node packages:
+### 2. Frontend Setup (`metacog-frontend`)
+
+1. Navigate to the frontend directory:
+   ```bash
+   cd ../metacog-frontend
+   ```
+2. Install npm dependencies:
+   ```bash
    npm install
-3. Point the client to your backend server (.env.local file):
-   NEXT_PUBLIC_API_URL=http://localhost:8000
-4. Run the development site:
+   ```
+3. Create a `.env.local` file:
+   ```env
+   NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+   NEXT_PUBLIC_API_URL=http://127.0.0.1:8000
+   ```
+4. Start the local Next.js development server:
+   ```bash
    npm run dev
-
-Open http://localhost:3000 in your browser to view the application.
-
----
-
-## Deployment and Hosting Guide
-
-To host this full-stack application online completely for free, follow this multi-platform deployment approach.
-
-### 1. Database (Supabase)
-Your database is hosted on Supabase cloud infrastructure. Ensure your PostgreSQL instance is active and your tables are initialized via the Supabase SQL editor.
-
-### 2. Frontend Deployment (Vercel)
-Next.js integrates natively with Vercel for zero-configuration global hosting.
-1. Link your GitHub account to Vercel.
-2. Select your repository and add a new project.
-3. Configure the Root Directory setting to target the frontend folder.
-4. Add the following Environment Variable before clicking Deploy:
-   NEXT_PUBLIC_API_URL=your_live_backend_server_url
-
-### 3. Backend Deployment (Render or Koyeb)
-Your FastAPI Python server can be hosted on a free cloud service instance.
-
-Configuration for Render:
-1. Create a new Web Service and link your repository.
-2. Set the Root Directory to backend.
-3. Set the Environment Runtime to Python 3.
-4. Set the Build Command to: pip install -r requirements.txt
-5. Set the Start Command to: uvicorn app.main:app --host 0.0.0.0 --port $PORT
-6. In Advanced Settings, input your production environment variables (SUPABASE_URL, OPENAI_API_KEY).
-
-Production CORS Update:
-Ensure your backend app/main.py configuration initializes the cross-origin resource sharing middleware with your live Vercel production domain string to authorize API communication.
-
----
-### Live Demo
-**Access the live platform here:** [https://metacog-ai-six.vercel.app/](https://metacog-ai-six.vercel.app/)
+   ```
+5. Open `http://localhost:3000` to interact with your dashboard.
 
 ---
 
-## Deployment
+## 🌐 Deployment
 
-The frontend of this application is configured for seamless deployment on **Vercel**:
+### Frontend (Vercel)
+The Next.js client is configured for automated global deployment via Vercel. 
+- Ensure `NEXT_PUBLIC_API_URL` is set to point to your live Render backend endpoint.
+- Commits pushed to `main` automatically deploy to production.
 
-1. **Environment Variables:** In your Vercel project settings, ensure you add `NEXT_PUBLIC_API_URL` pointing to your hosted FastAPI backend production URL.
-2. **Production Builds:** Any updates pushed to the `main` branch will automatically trigger a new production deployment.
+### Backend (Render)
+The orchestration engine uses the included `render.yaml` specification for zero-config deployments. 
+- **Automated Wildcard CORS**: The backend is configured with automatic Vercel subdomain whitelisting (`allow_origin_regex=r"https://.*\.vercel\.app"`), meaning CORS will dynamically authorize your production site as well as any branch-specific Vercel preview environments automatically!
 
-## The Team
+---
 
-Built in 24 hours for the hackathon by a 3-man squad:
-- Taufiq Mohammad, Karthik Veeranala and Kaushik Veeranala
-*   **Frontend & UX Lead:** Created the responsive layout, user workflows, and score tracking screens.
-*   **Backend & Database Architect:** Managed the database schemas, API routes, and user state logic.
-*   **AI Engine & Prompt Specialist:** Structured the AI response formatting, JSON evaluation schemas, and conversational fallback paths.
+## 🔗 Live Demo
+**Interact with the deployed production environment:** [https://metacog-ai-six.vercel.app/](https://metacog-ai-six.vercel.app/)
 
+---
 
+## 👥 The Hackathon Team
+Engineered in an intensive 24-hour sprint by a dedicated squad:
+- **Taufiq Mohammad**: Backend & Database Architect (Schemas, API endpoints, Supabase orchestration, CORS logic).
+- **Karthik Veeranala**: Frontend & UX Lead (Responsive glassmorphic UI, Next.js page routers, dashboard visualizers).
+- **Kaushik Veeranala**: AI Orchestration Specialist (Socratic prompting logic, confidence matrix state evaluations, strict JSON structure parsing).
